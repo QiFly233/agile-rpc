@@ -32,7 +32,7 @@ class ServerHandler extends SimpleChannelInboundHandler<RpcFrame> {
                 byte[] bytes = new byte[byteBuf.readableBytes()];
                 byteBuf.getBytes(byteBuf.readerIndex(), bytes);
                 RpcBody body = RpcBody.parseFrom(bytes);
-                logger.info("netty server receive msg:{}", body);
+                logger.debug("netty server receive body:{}", body);
                 RpcMethod rpcMethod = provider.getRpcMethod(body.getRpcId());
                 Message resp = provider.invokeMethod(rpcMethod.getRpcId(), body.getData());
                 RpcBody respBody = RpcBody.newBuilder()

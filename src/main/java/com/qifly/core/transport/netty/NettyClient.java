@@ -1,11 +1,10 @@
 package com.qifly.core.transport.netty;
 
 import com.google.protobuf.Any;
-import com.google.protobuf.Message;
 import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.protocol.frame.FrameCodec;
 import com.qifly.core.protocol.frame.RpcFrame;
-import com.qifly.core.service.Consumer;
+import com.qifly.core.retry.RetryExecutor;
 import com.qifly.core.transport.TransportClient;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
@@ -23,8 +22,6 @@ import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -34,7 +31,6 @@ public class NettyClient implements TransportClient {
 
     Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
-    private final List<Consumer> consumers;
     private final Bootstrap bootstrap;
     private final EventLoopGroup workGroup = new NioEventLoopGroup(1);
     private volatile Channel channel;
@@ -43,8 +39,7 @@ public class NettyClient implements TransportClient {
     private final AtomicLong requestId = new AtomicLong(1);
     private final ConcurrentMap<Long, CompletableFuture<Any>> futureMap = new ConcurrentHashMap<>();
 
-    public NettyClient(List<Consumer> consumers) {
-        this.consumers = consumers;
+    public NettyClient() {
         bootstrap = new Bootstrap();
         bootstrap.group(workGroup)
                 .channel(NioSocketChannel.class)
@@ -61,34 +56,65 @@ public class NettyClient implements TransportClient {
     }
 
     @Override
-    public void connect(String host, int port) throws Exception {
+    public void connect(String host, int port) throws InterruptedException {
         ChannelFuture f = bootstrap.connect(host, port).sync();
         if (!f.isSuccess()) {
-            throw new IOException("connect failed", f.cause());
+            RetryExecutor.executeAsync("netty-connect", () -> {
+                ChannelFuture future = bootstrap.connect(host, port).sync();
+                if (!future.isSuccess()) {
+                    throw new RuntimeException("connect failed");
+                }
+                notifyConnect(future, host, port);
+            });
+            return;
         }
-        channel = f.channel();
+        notifyConnect(f, host, port);
+    }
+
+    private void notifyConnect(ChannelFuture future, String host, int port) {
+        channel = future.channel();
         channelMap.put(host + ":" + port, channel);
-        logger.info("netty client connect host{}:port {}", host, port);
+        logger.info("netty client connect {}:{} success", host, port);
     }
 
     @Override
-    public Channel getChannel(String host, int port) {
-        if (channelMap.get(host + ":" + port) == null) {
+    public void disconnect(String endpoint) throws InterruptedException {
+        Channel ch = getChannel(endpoint);
+        if (ch != null) {
+            ChannelFuture f = ch.close().sync();
+            if (!f.isSuccess()) {
+                RetryExecutor.executeAsync("netty-connect", () -> {
+                    ChannelFuture future = ch.close().sync();
+                    if (!future.isSuccess()) {
+                        throw new RuntimeException("disconnect failed");
+                    }
+                    notifyDisconnect(endpoint);
+                });
+                return;
+            }
+        }
+        notifyDisconnect(endpoint);
+    }
+
+    private void notifyDisconnect(String endpoint) {
+        channelMap.remove(endpoint);
+        logger.info("netty client disconnect {} success", endpoint);
+    }
+
+    @Override
+    public Channel getChannel(String endpoint) {
+        if (channelMap.get(endpoint) == null) {
             return null;
         }
-        return channelMap.get(host + ":" + port);
+        return channelMap.get(endpoint);
     }
 
     @Override
-    public CompletableFuture<Any> send(int rpcId, Message req) {
+    public CompletableFuture<Any> send(String endpoint, RpcBody body) {
         long id = requestId.getAndIncrement();
         CompletableFuture<Any> future = new CompletableFuture<>();
         futureMap.put(id, future);
-
-        Channel ch = getChannel("127.0.0.1", 8080);
-        RpcBody body = RpcBody.newBuilder()
-                .setRpcId(rpcId)
-                .setData(Any.pack(req)).build();
+        Channel ch = getChannel(endpoint);
         ch.writeAndFlush(RpcFrame.request(1, false, id, Unpooled.wrappedBuffer(body.toByteArray())));
         return future;
     }

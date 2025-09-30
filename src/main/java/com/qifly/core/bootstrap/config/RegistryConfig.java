@@ -8,9 +8,23 @@ public class RegistryConfig {
     /**
      * 地址
      */
-    private String address;
+    private final String baseUrl;
 
-    public RegistryConfig(String address) {
-        this.address = address;
+    /**
+     * 注册中心类型， 1=consul
+     */
+    private final int type;
+
+    public RegistryConfig(String baseUrl, int type) {
+        this.baseUrl = baseUrl;
+        this.type = type;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public int getType() {
+        return type;
     }
 }

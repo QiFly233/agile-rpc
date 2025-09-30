@@ -29,21 +29,17 @@ public class NettyServer implements TransportServer {
     private final Provider provider;
     private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     private final EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private final ServerBootstrap bootstrap;
     private volatile Channel serverChannel;
     private final int maxFrameLength = 1024 * 1024 + 16;
 
     public NettyServer(int port, Provider provider) {
         this.port = port;
         this.provider = provider;
-    }
-
-    @Override
-    public void start() throws Exception {
-        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
-
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
@@ -53,14 +49,16 @@ public class NettyServer implements TransportServer {
                         ch.pipeline().addLast(new ServerHandler(provider));
                     }
                 });
+    }
 
+    @Override
+    public void start() throws Exception {
         ChannelFuture future = bootstrap.bind(port).sync();
         if (!future.isSuccess()) {
             throw new IOException("bind failed", future.cause());
         }
         serverChannel = future.channel();
         logger.info("netty server started on port {}", port);
-
     }
 
     @Override

@@ -24,6 +24,11 @@ public class Provider {
     private final Object impl;
 
     /**
+     * 服务名
+     */
+    private final String serviceName;
+
+    /**
      * 方法映射
      */
     private final Map<Integer, RpcMethod> methodMap;
@@ -37,6 +42,7 @@ public class Provider {
         this.itf = itf;
         this.impl = impl;
         this.port = port;
+        serviceName = itf.getSimpleName();
         methodMap = getMethods();
     }
 
@@ -82,5 +88,9 @@ public class Provider {
 
     public int getPort() {
         return port;
+    }
+
+    public String getServiceName() {
+        return serviceName;
     }
 }

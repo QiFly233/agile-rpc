@@ -23,6 +23,11 @@ public class Consumer {
     private final String itfName;
 
     /**
+     * 服务名
+     */
+    private final String serviceName;
+
+    /**
      * 方法与RpcId的映射
      */
     private final Map<Method, RpcMethod> methodMap;
@@ -35,6 +40,7 @@ public class Consumer {
     public Consumer(Class<?> itf, int port) {
         this.itf = itf;
         itfName = itf.getName();
+        serviceName = itf.getSimpleName();
         this.port = port;
         methodMap = getMethods();
     }
@@ -77,5 +83,9 @@ public class Consumer {
 
     public int getPort() {
         return port;
+    }
+
+    public String getServiceName() {
+        return serviceName;
     }
 }

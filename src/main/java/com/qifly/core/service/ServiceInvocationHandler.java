@@ -3,6 +3,8 @@ package com.qifly.core.service;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+import com.qifly.core.protocol.data.RpcBody;
+import com.qifly.core.registry.Discovery;
 import com.qifly.core.transport.TransportClient;
 
 import java.lang.reflect.InvocationHandler;
@@ -18,9 +20,12 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
     private final TransportClient client;
 
-    public ServiceInvocationHandler(Consumer consumer, TransportClient client) {
+    private final Discovery discovery;
+
+    public ServiceInvocationHandler(Consumer consumer, TransportClient client, Discovery discovery) {
         this.consumer = consumer;
         this.client = client;
+        this.discovery = discovery;
     }
 
     @Override
@@ -29,10 +34,18 @@ public class ServiceInvocationHandler implements InvocationHandler {
             return method.invoke(this, args);
         }
         Message req = (Message) args[0];
-        CompletableFuture<Any> future = client.send(consumer.getRpcId(method), req);
-        return future.thenApply(body -> {
+        int rpcId = consumer.getRpcId(method);
+        RpcBody reqBody = RpcBody.newBuilder()
+                .setRpcId(rpcId)
+                .setData(Any.pack(req)).build();
+        String endpoint = discovery.discover(consumer.getServiceName());
+        if (endpoint == null || endpoint.isEmpty()) {
+            return null;
+        }
+        CompletableFuture<Any> future = client.send(endpoint, reqBody);
+        return future.thenApply(respBody -> {
             try {
-                return body.unpack(consumer.getRespType(method));
+                return respBody.unpack(consumer.getRespType(method));
             } catch (InvalidProtocolBufferException e) {
                 throw new RuntimeException(e);
             }

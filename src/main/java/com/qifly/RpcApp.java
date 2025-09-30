@@ -1,11 +1,16 @@
 package com.qifly;
 
+import com.qifly.core.registry.Discovery;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;
 import com.qifly.core.service.ServiceProxyFactory;
-import com.qifly.core.transport.netty.NettyClient;
-import com.qifly.core.transport.netty.NettyServer;
+import com.qifly.core.transport.TransportClient;
+import com.qifly.core.transport.TransportServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +18,9 @@ import java.util.Map;
 /**
  * RPC应用
  */
-public class RpcApp {
+public class RpcApp implements Closeable {
+
+    private static final Logger logger = LoggerFactory.getLogger(RpcApp.class);
 
     /**
      * 生产者
@@ -29,6 +36,21 @@ public class RpcApp {
      * 消费者代理类
      */
     private final Map<String, Object> consumerProxy = new HashMap<>();
+
+    /**
+     * 服务发现者
+     */
+    private Discovery discovery;
+
+    /**
+     * 服务端
+     */
+    private TransportServer server;
+
+    /**
+     * 客户端
+     */
+    private TransportClient client;
 
     public Provider getProvider() {
         return provider;
@@ -51,27 +73,56 @@ public class RpcApp {
         return (T) consumerProxy.get(consumerName);
     }
 
+    public Map<String, Object> getConsumerProxy() {
+        return consumerProxy;
+    }
+
+    public Discovery getDiscovery() {
+        return discovery;
+    }
+
+    public void setDiscovery(Discovery discovery) {
+        this.discovery = discovery;
+    }
+
+    public void setServer(TransportServer server) {
+        this.server = server;
+    }
+
+    public void setClient(TransportClient client) {
+        this.client = client;
+    }
+
+    public TransportServer getServer() {
+        return server;
+    }
+
+    public TransportClient getClient() {
+        return client;
+    }
+
     public void init() {
         if (provider != null) {
             try {
-                NettyServer nettyServer = new NettyServer(provider.getPort(), provider);
-                nettyServer.start();
+                server.start();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
-        if (!consumers.isEmpty()) {
-            NettyClient nettyClient = new NettyClient(consumers);
+        if (consumers != null && !consumers.isEmpty()) {
             for (Consumer consumer : consumers) {
-                // TODO 从注册中心获取地址
-                try {
-                    nettyClient.connect("127.0.0.1", consumer.getPort());
-                    consumerProxy.put(consumer.getItf().getSimpleName(), ServiceProxyFactory.create(consumer, nettyClient));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                consumerProxy.put(consumer.getItf().getSimpleName(), ServiceProxyFactory.create(consumer, client, discovery));
             }
         }
+
+        if (discovery != null) {
+            discovery.start();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        // TODO
     }
 }

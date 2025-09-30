@@ -6,7 +6,6 @@ import com.qifly.core.protocol.frame.RpcFrame;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +35,11 @@ class ClientHandler extends SimpleChannelInboundHandler<RpcFrame> {
             byteBuf.getBytes(byteBuf.readerIndex(), bytes);
             try {
                 RpcBody body = RpcBody.parseFrom(bytes);
+                logger.debug("netty client receive body:{}", body);
                 future.complete(body.getData());
             } catch (Exception e) {
-
+                future.complete(null);
             }
         }
-        String text = msg.getBody().toString(CharsetUtil.UTF_8);
-        logger.info("netty client receive text={}", text);
     }
 }

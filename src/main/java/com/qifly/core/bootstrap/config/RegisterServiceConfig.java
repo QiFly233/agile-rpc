@@ -24,6 +24,10 @@ public class RegisterServiceConfig {
         this(serviceInterface, null, port);
     }
 
+    public RegisterServiceConfig(Class<?> serviceInterface) {
+        this(serviceInterface, null, 0);
+    }
+
     public RegisterServiceConfig(Class<?> serviceInterface, Object serviceImpl, int port) {
         this.serviceInterface = serviceInterface;
         this.serviceImpl = serviceImpl;
