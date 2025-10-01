@@ -1,4 +1,4 @@
-package com.qifly.core.registry;
+package com.qifly.core.discovery.registry;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

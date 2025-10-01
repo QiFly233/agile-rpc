@@ -39,6 +39,7 @@ public class NettyTest {
                 .addProvider(UserService.class, new MockUserService(), 8080)
                 .addRegister("http://127.0.0.1:8500", 1);
         serverApp = serverBootstrap.build();
+        serverApp.start();
 
         // 为了确保server注册上consul
         Thread.sleep(10000);
@@ -47,6 +48,7 @@ public class NettyTest {
                 .addConsumer(UserService.class)
                 .addRegister("http://127.0.0.1:8500", 1);
         clientApp = clientBootstrap.build();
+        clientApp.start();
 
         userService = clientApp.getConsumer("UserService");
         assertNotNull(userService);

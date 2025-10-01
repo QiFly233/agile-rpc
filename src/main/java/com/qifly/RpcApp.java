@@ -1,6 +1,6 @@
 package com.qifly;
 
-import com.qifly.core.registry.Discovery;
+import com.qifly.core.discovery.Discovery;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;
 import com.qifly.core.service.ServiceProxyFactory;
@@ -102,17 +102,19 @@ public class RpcApp implements Closeable {
     }
 
     public void init() {
+        if (consumers != null && !consumers.isEmpty()) {
+            for (Consumer consumer : consumers) {
+                consumerProxy.put(consumer.getItf().getSimpleName(), ServiceProxyFactory.create(consumer, client, discovery));
+            }
+        }
+    }
+
+    public void start() {
         if (provider != null) {
             try {
                 server.start();
             } catch (Exception e) {
                 throw new RuntimeException(e);
-            }
-        }
-
-        if (consumers != null && !consumers.isEmpty()) {
-            for (Consumer consumer : consumers) {
-                consumerProxy.put(consumer.getItf().getSimpleName(), ServiceProxyFactory.create(consumer, client, discovery));
             }
         }
 

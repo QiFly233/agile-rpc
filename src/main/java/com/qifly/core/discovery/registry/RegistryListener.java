@@ -1,4 +1,4 @@
-package com.qifly.core.registry;
+package com.qifly.core.discovery.registry;
 
 import java.util.List;
 

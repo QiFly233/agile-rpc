@@ -1,6 +1,6 @@
 package com.qifly.core.service;
 
-import com.qifly.core.registry.Discovery;
+import com.qifly.core.discovery.Discovery;
 import com.qifly.core.transport.TransportClient;
 
 import java.lang.reflect.Proxy;

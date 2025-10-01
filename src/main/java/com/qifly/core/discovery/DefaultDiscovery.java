@@ -1,5 +1,7 @@
-package com.qifly.core.registry;
+package com.qifly.core.discovery;
 
+import com.qifly.core.discovery.registry.Registry;
+import com.qifly.core.discovery.registry.RegistryException;
 import com.qifly.core.retry.RetryExecutor;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;

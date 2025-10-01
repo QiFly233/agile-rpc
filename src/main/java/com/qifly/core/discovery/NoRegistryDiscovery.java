@@ -1,4 +1,4 @@
-package com.qifly.core.registry;
+package com.qifly.core.discovery;
 
 import com.qifly.core.service.Consumer;
 import com.qifly.core.transport.TransportClient;

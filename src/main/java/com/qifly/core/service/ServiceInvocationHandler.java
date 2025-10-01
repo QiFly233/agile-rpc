@@ -4,7 +4,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.qifly.core.protocol.data.RpcBody;
-import com.qifly.core.registry.Discovery;
+import com.qifly.core.discovery.Discovery;
 import com.qifly.core.transport.TransportClient;
 
 import java.lang.reflect.InvocationHandler;

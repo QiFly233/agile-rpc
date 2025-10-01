@@ -37,6 +37,7 @@ public class MultiNettyClientTest {
                 .addProvider(UserService.class, new MockUserService(), 8081)
                 .addRegister("http://127.0.0.1:8500", 1);
         serverApp = serverBootstrap.build();
+        serverApp.start();
 
         Thread.sleep(10000);
 
@@ -45,6 +46,7 @@ public class MultiNettyClientTest {
                     .addConsumer(UserService.class)
                     .addRegister("http://127.0.0.1:8500", 1);
             RpcApp clientApp = clientBootstrap.build();
+            clientApp.start();
             clientApps.add(clientApp);
 
             UserService userService = clientApp.getConsumer("UserService");
