@@ -47,9 +47,14 @@ public class DefaultDiscovery implements Discovery {
         register();
         if (consumers != null && !consumers.isEmpty()) {
             for (Consumer consumer : consumers) {
-                subscribe(consumer.getServiceName());
-                // 首轮更新必须完成
-                while (endpointMap.get(consumer.getServiceName()) == null) ;
+                if (consumer.getEndpoints() != null && !consumer.getEndpoints().isEmpty()) {
+                    notifyServiceChange(consumer.getServiceName(), consumer.getEndpoints());
+                }
+                else {
+                    subscribe(consumer.getServiceName());
+                    // 首轮更新必须完成
+                    while (endpointMap.get(consumer.getServiceName()) == null) ;
+                }
             }
         }
     }

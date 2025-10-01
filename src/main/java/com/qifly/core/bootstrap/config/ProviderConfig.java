@@ -1,9 +1,9 @@
 package com.qifly.core.bootstrap.config;
 
 /**
- * 服务注册配置
+ * 提供者配置
  */
-public class RegisterServiceConfig {
+public class ProviderConfig {
 
     /**
      * 服务接口
@@ -20,15 +20,7 @@ public class RegisterServiceConfig {
      */
     private final int port;
 
-    public RegisterServiceConfig(Class<?> serviceInterface, int port) {
-        this(serviceInterface, null, port);
-    }
-
-    public RegisterServiceConfig(Class<?> serviceInterface) {
-        this(serviceInterface, null, 0);
-    }
-
-    public RegisterServiceConfig(Class<?> serviceInterface, Object serviceImpl, int port) {
+    public ProviderConfig(Class<?> serviceInterface, Object serviceImpl, int port) {
         this.serviceInterface = serviceInterface;
         this.serviceImpl = serviceImpl;
         this.port = port;

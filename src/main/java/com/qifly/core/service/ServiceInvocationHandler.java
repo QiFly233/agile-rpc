@@ -38,7 +38,15 @@ public class ServiceInvocationHandler implements InvocationHandler {
         RpcBody reqBody = RpcBody.newBuilder()
                 .setRpcId(rpcId)
                 .setData(Any.pack(req)).build();
-        String endpoint = discovery.discover(consumer.getServiceName());
+
+        // TODO 策略
+        String endpoint = null;
+        if (consumer.getEndpoints() != null && !consumer.getEndpoints().isEmpty()) {
+            endpoint = consumer.getEndpoints().get(0);
+        } else if (discovery != null) {
+            endpoint = discovery.discover(consumer.getServiceName());
+        }
+
         if (endpoint == null || endpoint.isEmpty()) {
             return null;
         }

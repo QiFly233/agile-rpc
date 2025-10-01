@@ -5,6 +5,7 @@ import com.qifly.core.utils.ServiceUtil;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,15 +34,15 @@ public class Consumer {
     private final Map<Method, RpcMethod> methodMap;
 
     /**
-     * 端口
+     * 直连地址
      */
-    private final int port;
+    private final List<String> endpoints;
 
-    public Consumer(Class<?> itf, int port) {
+    public Consumer(Class<?> itf, List<String> endpoints) {
         this.itf = itf;
         itfName = itf.getName();
         serviceName = itf.getSimpleName();
-        this.port = port;
+        this.endpoints = endpoints;
         methodMap = getMethods();
     }
 
@@ -81,8 +82,8 @@ public class Consumer {
         return itfName;
     }
 
-    public int getPort() {
-        return port;
+    public List<String> getEndpoints() {
+        return endpoints;
     }
 
     public String getServiceName() {
