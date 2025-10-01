@@ -20,7 +20,8 @@ import static org.junit.Assert.assertNotNull;
 
 public class NettyTest {
 
-    private static RpcApp rpcApp;
+    private static RpcApp serverApp;
+    private static RpcApp clientApp;
     private static UserService userService;
 
     public static class MockUserService implements UserService {
@@ -33,12 +34,21 @@ public class NettyTest {
     }
 
     @BeforeClass
-    public static void init() {
-        RpcBootstrap bootstrap = new RpcBootstrap()
+    public static void init() throws InterruptedException {
+        RpcBootstrap serverBootstrap = new RpcBootstrap()
                 .addProvider(UserService.class, new MockUserService(), 8080)
-                .addConsumer(UserService.class, 8080);
-        rpcApp = bootstrap.build();
-        userService = rpcApp.getConsumer("UserService");
+                .addRegister("http://127.0.0.1:8500", 1);
+        serverApp = serverBootstrap.build();
+
+        // 为了确保server注册上consul
+        Thread.sleep(10000);
+
+        RpcBootstrap clientBootstrap = new RpcBootstrap()
+                .addConsumer(UserService.class)
+                .addRegister("http://127.0.0.1:8500", 1);
+        clientApp = clientBootstrap.build();
+
+        userService = clientApp.getConsumer("UserService");
         assertNotNull(userService);
     }
 
