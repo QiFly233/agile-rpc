@@ -56,48 +56,54 @@ public class NettyClient implements TransportClient {
     }
 
     @Override
-    public void connect(String host, int port) throws InterruptedException {
-        ChannelFuture f = bootstrap.connect(host, port).sync();
-        if (!f.isSuccess()) {
-            RetryExecutor.executeAsync("netty-connect", () -> {
-                ChannelFuture future = bootstrap.connect(host, port).sync();
-                if (!future.isSuccess()) {
-                    throw new RuntimeException("connect failed");
+    public void connect(String host, int port) {
+        doConnect(host, port, 0);
+    }
+
+    private void doConnect(String host, int port, int retryCount) {
+        bootstrap.connect(host, port).addListener((ChannelFuture future) -> {
+            if (!future.isSuccess()) {
+                logger.error("netty client connect {}:{} failed, retryCount={}", host, port, retryCount);
+                if (retryCount < 5) {
+                    RetryExecutor.executeAsync("netty-connect", () -> doConnect(host, port, retryCount + 1));
                 }
-                notifyConnect(future, host, port);
-            });
-            return;
-        }
-        notifyConnect(f, host, port);
+                return;
+            }
+            notifyConnect(future, host, port);
+        });
     }
 
     private void notifyConnect(ChannelFuture future, String host, int port) {
+        String endpoint = host + ":" + port;
         channel = future.channel();
-        channelMap.put(host + ":" + port, channel);
+        channelMap.put(endpoint, channel);
         logger.info("netty client connect {}:{} success", host, port);
     }
 
     @Override
-    public void disconnect(String endpoint) throws InterruptedException {
+    public void disconnect(String endpoint) {
         Channel ch = getChannel(endpoint);
+        channelMap.remove(endpoint);
+        doDisconnect(ch, endpoint, 0);
+    }
+
+    private void doDisconnect(Channel ch, String endpoint, int retryCount) {
         if (ch != null) {
-            ChannelFuture f = ch.close().sync();
-            if (!f.isSuccess()) {
-                RetryExecutor.executeAsync("netty-connect", () -> {
-                    ChannelFuture future = ch.close().sync();
-                    if (!future.isSuccess()) {
-                        throw new RuntimeException("disconnect failed");
+            ch.close().addListener((ChannelFuture future) -> {
+                if (!future.isSuccess()) {
+                    logger.error("netty client disconnect {} failed, retryCount={}", endpoint, retryCount);
+                    if (retryCount < 5) {
+                        RetryExecutor.executeAsync("netty-connect", () -> doDisconnect(ch, endpoint, retryCount + 1));
                     }
-                    notifyDisconnect(endpoint);
-                });
-                return;
-            }
+                    return;
+                }
+                notifyDisconnect(endpoint);
+            });
+
         }
-        notifyDisconnect(endpoint);
     }
 
     private void notifyDisconnect(String endpoint) {
-        channelMap.remove(endpoint);
         logger.info("netty client disconnect {} success", endpoint);
     }
 

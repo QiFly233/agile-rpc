@@ -1,5 +1,7 @@
 package com.qifly.core.discovery;
 
+import java.util.List;
+
 public interface Discovery {
 
     void start();
@@ -8,5 +10,5 @@ public interface Discovery {
 
     void deregister();
 
-    String discover(String serviceName);
+    List<String> discover(String serviceName);
 }

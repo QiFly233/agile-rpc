@@ -9,20 +9,20 @@ import java.util.concurrent.CompletableFuture;
 
 public interface TransportClient extends Closeable {
 
-    void connect(String host, int port) throws InterruptedException;
+    void connect(String host, int port);
 
-    default void connect(String endpoint) throws InterruptedException {
+    default void connect(String endpoint) {
         String[] ss = endpoint.split(":");
         String host = ss[0];
         int port = Integer.parseInt(ss[1]);
         connect(host, port);
     }
 
-    default void disconnect(String host, int port) throws InterruptedException {
+    default void disconnect(String host, int port) {
         disconnect(host + ":" + port);
     }
 
-    void disconnect(String endpoint) throws InterruptedException;
+    void disconnect(String endpoint);
 
 	default Channel getChannel(String host, int port) {
         return getChannel(host + ":" + port);

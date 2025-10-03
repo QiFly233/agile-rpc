@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * 计划 快照缓存+过期返回并刷新+定时后台刷新
@@ -29,7 +30,10 @@ public class DefaultDiscovery implements Discovery {
 
     private final List<Consumer> consumers;
 
-    // 已发现的服务端点
+    /**
+     * 仅缓存注册中心的地址
+     * 不表示是否已经与服务地址建立连接
+     */
     private final ConcurrentMap<String, List<String>> endpointMap = new ConcurrentHashMap<>();
 
     // TODO 统一线程管理
@@ -97,49 +101,33 @@ public class DefaultDiscovery implements Discovery {
     }
 
     @Override
-    public String discover(String serviceName) {
+    public List<String> discover(String serviceName) {
         List<String> endpoints = endpointMap.get(serviceName);
-        if (endpoints == null || endpoints.isEmpty()) {
-            return null;
+        if (endpoints == null) {
+            return Collections.emptyList();
         }
-        // TODO 策略 channel
-        for (String endpoint : endpoints) {
-            if (client.getChannel(endpoint) != null) {
-                return endpoint;
-            }
-        }
-        return null;
+        return endpoints.stream()
+                .filter(endpoint -> client.getChannel(endpoint) != null)
+                .collect(Collectors.toList());
     }
 
     private void notifyServiceChange(String serviceName, List<String> endpoints) {
         List<String> oldEndpoints = endpointMap.getOrDefault(serviceName, Collections.emptyList());
+        endpointMap.put(serviceName, endpoints);
         if (client != null) {
+            // 上线节点
+            for (String endpoint : endpoints) {
+                if (!oldEndpoints.contains(endpoint)) {
+                    client.connect(endpoint);
+                }
+            }
             // 下线节点
             for (String old : oldEndpoints) {
                 if (!endpoints.contains(old)) {
-                    try {
-                        client.disconnect(old);
-                    } catch (InterruptedException e) {
-                        logger.error("client disconnect {} error", old, e);
-                    }
-                }
-            }
-            // 新增节点
-            for (String endpoint : endpoints) {
-                if (!oldEndpoints.contains(endpoint)) {
-                    try {
-                        client.connect(endpoint);
-                    } catch (InterruptedException e) {
-                        logger.warn("client connect {} error", endpoint, e);
-                    }
+                    client.disconnect(old);
                 }
             }
         }
-        /**
-         * 只缓存由注册中心发现的服务端点，与服务连接/断连无关
-         * 可能存在短暂的与client中的channelMap存在不一致，但无关紧要，选择client.channel时只需要判断是否在channelMap即可
-         */
-        endpointMap.put(serviceName, endpoints);
     }
 
     private void subscribe(String serviceName) {

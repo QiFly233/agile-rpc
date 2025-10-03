@@ -3,12 +3,13 @@ package com.qifly.core.service;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
-import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.discovery.Discovery;
+import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.transport.TransportClient;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -44,7 +45,10 @@ public class ServiceInvocationHandler implements InvocationHandler {
         if (consumer.getEndpoints() != null && !consumer.getEndpoints().isEmpty()) {
             endpoint = consumer.getEndpoints().get(0);
         } else if (discovery != null) {
-            endpoint = discovery.discover(consumer.getServiceName());
+            List<String> endpoints = discovery.discover(consumer.getServiceName());
+            if (endpoints != null && !endpoints.isEmpty()) {
+                endpoint = endpoints.get(0);
+            }
         }
 
         if (endpoint == null || endpoint.isEmpty()) {

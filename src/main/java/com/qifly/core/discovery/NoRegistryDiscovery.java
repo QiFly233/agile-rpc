@@ -29,20 +29,15 @@ public class NoRegistryDiscovery implements Discovery {
         if (consumers == null || consumers.isEmpty()) {
             return;
         }
-
         for (Consumer consumer : consumers) {
             List<String> endpoints = consumer.getEndpoints();
             if (consumer.getEndpoints() == null || consumer.getEndpoints().isEmpty()) {
                 continue;
             }
-            for (String endpoint : endpoints) {
-                try {
-                    client.connect(endpoint);
-                } catch (InterruptedException e) {
-                    logger.warn("client connect {} error", endpoint, e);
-                }
-            }
             endpointMap.put(consumer.getServiceName(), endpoints);
+            for (String endpoint : endpoints) {
+                client.connect(endpoint);
+            }
         }
     }
 
@@ -57,17 +52,7 @@ public class NoRegistryDiscovery implements Discovery {
     }
 
     @Override
-    public String discover(String serviceName) {
-        List<String> endpoints = endpointMap.get(serviceName);
-        if (endpoints == null || endpoints.isEmpty()) {
-            return null;
-        }
-        // TODO 策略 channel
-        for (String endpoint : endpoints) {
-            if (client.getChannel(endpoint) != null) {
-                return endpoint;
-            }
-        }
-        return null;
+    public List<String> discover(String serviceName) {
+        return endpointMap.get(serviceName);
     }
 }

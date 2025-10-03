@@ -112,7 +112,7 @@ public class ConsulRegistry implements Registry {
     }
 
     @Override
-    public void subscribe(String serviceName, RegistryListener listener) {
+    public void subscribe(String serviceName, SubscribeListener listener) {
         long lastIndex = 1L;
         while (true) {
             String url = baseUrl + healthServiceApi + serviceName + "?passing=true&wait=60s&index=" + lastIndex;
