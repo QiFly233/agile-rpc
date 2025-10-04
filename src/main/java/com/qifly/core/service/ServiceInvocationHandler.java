@@ -3,13 +3,12 @@ package com.qifly.core.service;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
-import com.qifly.core.discovery.Discovery;
+import com.qifly.core.cluster.Cluster;
 import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.transport.TransportClient;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -21,12 +20,12 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
     private final TransportClient client;
 
-    private final Discovery discovery;
+    private final Cluster cluster;
 
-    public ServiceInvocationHandler(Consumer consumer, TransportClient client, Discovery discovery) {
+    public ServiceInvocationHandler(Consumer consumer, TransportClient client, Cluster cluster) {
         this.consumer = consumer;
         this.client = client;
-        this.discovery = discovery;
+        this.cluster = cluster;
     }
 
     @Override
@@ -40,18 +39,8 @@ public class ServiceInvocationHandler implements InvocationHandler {
                 .setRpcId(rpcId)
                 .setData(Any.pack(req)).build();
 
-        // TODO 策略
-        String endpoint = null;
-        if (consumer.getEndpoints() != null && !consumer.getEndpoints().isEmpty()) {
-            endpoint = consumer.getEndpoints().get(0);
-        } else if (discovery != null) {
-            List<String> endpoints = discovery.discover(consumer.getServiceName());
-            if (endpoints != null && !endpoints.isEmpty()) {
-                endpoint = endpoints.get(0);
-            }
-        }
-
-        if (endpoint == null || endpoint.isEmpty()) {
+        String endpoint = cluster.getEndpoint(consumer.getServiceName());
+        if (endpoint == null) {
             return null;
         }
         CompletableFuture<Any> future = client.send(endpoint, reqBody);

@@ -1,5 +1,11 @@
 package com.qifly;
 
+import com.qifly.core.cluster.Cluster;
+import com.qifly.core.cluster.DefaultCluster;
+import com.qifly.core.cluster.loadbalance.LoadBalance;
+import com.qifly.core.cluster.loadbalance.RoundRobinLoadBalance;
+import com.qifly.core.cluster.router.DefaultRouter;
+import com.qifly.core.cluster.router.Router;
 import com.qifly.core.discovery.Discovery;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;
@@ -101,10 +107,19 @@ public class RpcApp implements Closeable {
         return client;
     }
 
+    public LoadBalance getLoadBalance() {
+        return new RoundRobinLoadBalance();
+    }
+
+    public Router getRouter() {
+        return new DefaultRouter(client);
+    }
+
     public void init() {
+        Cluster cluster = new DefaultCluster(discovery, getLoadBalance(), getRouter());
         if (consumers != null && !consumers.isEmpty()) {
             for (Consumer consumer : consumers) {
-                consumerProxy.put(consumer.getItf().getSimpleName(), ServiceProxyFactory.create(consumer, client, discovery));
+                consumerProxy.put(consumer.getItf().getSimpleName(), ServiceProxyFactory.create(consumer, client, cluster));
             }
         }
     }

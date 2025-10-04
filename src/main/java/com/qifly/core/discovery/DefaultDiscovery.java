@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * 计划 快照缓存+过期返回并刷新+定时后台刷新
@@ -106,9 +105,7 @@ public class DefaultDiscovery implements Discovery {
         if (endpoints == null) {
             return Collections.emptyList();
         }
-        return endpoints.stream()
-                .filter(endpoint -> client.getChannel(endpoint) != null)
-                .collect(Collectors.toList());
+        return endpoints;
     }
 
     private void notifyServiceChange(String serviceName, List<String> endpoints) {
