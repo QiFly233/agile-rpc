@@ -1,6 +1,6 @@
-package com.qifly.core.discovery.registry;
+package com.qifly.core.exception;
 
-public class RegistryException extends Exception{
+public class RegistryException extends RpcException{
 
     public RegistryException(String message) {
         super(message);

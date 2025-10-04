@@ -1,5 +1,6 @@
 package com.qifly.core.transport.netty;
 
+import com.qifly.core.exception.TransportException;
 import com.qifly.core.protocol.frame.FrameCodec;
 import com.qifly.core.service.Provider;
 import com.qifly.core.transport.TransportServer;
@@ -52,10 +53,10 @@ public class NettyServer implements TransportServer {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() throws TransportException, InterruptedException {
         ChannelFuture future = bootstrap.bind(port).sync();
         if (!future.isSuccess()) {
-            throw new IOException("bind failed", future.cause());
+            throw new TransportException("netty server bind port:" + port + "failed", future.cause());
         }
         serverChannel = future.channel();
         logger.info("netty server started on port {}", port);

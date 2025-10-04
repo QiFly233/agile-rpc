@@ -1,5 +1,6 @@
 package com.qifly.core.discovery.registry;
 
+import com.qifly.core.exception.RegistryException;
 import com.qifly.core.service.Provider;
 
 import java.util.List;

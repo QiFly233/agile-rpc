@@ -48,7 +48,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
             try {
                 return respBody.unpack(consumer.getRespType(method));
             } catch (InvalidProtocolBufferException e) {
-                throw new RuntimeException(e);
+                return null;
             }
         }).get();
     }

@@ -3,6 +3,7 @@ package com.qifly.core.discovery.registry;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.qifly.core.exception.RegistryException;
 import com.qifly.core.service.Provider;
 import com.qifly.core.utils.HttpClientUtil;
 import com.qifly.core.utils.IpUtil;
