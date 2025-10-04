@@ -25,8 +25,8 @@ public class RpcFrame {
         this.body = body;
     }
 
-    public static RpcFrame request(int protoId, boolean heartbeat, long requestId, ByteBuf body) {
-        byte f = Flag.build(protoId, true, heartbeat);
+    public static RpcFrame request(int protocolType, boolean heartbeat, long requestId, ByteBuf body) {
+        byte f = Flag.build(protocolType, true, heartbeat);
         return new RpcFrame(MAGIC, f, (byte) 0, body.readableBytes(), requestId, body);
     }
 
@@ -91,8 +91,8 @@ public class RpcFrame {
             return (flags & HB_BIT) != 0;
         }
 
-        public static byte build(int protoId, boolean request, boolean heartbeat) {
-            int f = (protoId & PROTO_MASK)
+        public static byte build(int protocolType, boolean request, boolean heartbeat) {
+            int f = (protocolType & PROTO_MASK)
                     | (request ? REQ_BIT : 0)
                     | (heartbeat ? HB_BIT : 0);
             return (byte) (f & 0xFF);

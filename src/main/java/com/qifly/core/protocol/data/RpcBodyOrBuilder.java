@@ -11,6 +11,10 @@ public interface RpcBodyOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
+   * <pre>
+   * 方法唯一标识
+   * </pre>
+   *
    * <code>int32 rpc_id = 1;</code>
    * @return The rpcId.
    */
@@ -42,4 +46,23 @@ public interface RpcBodyOrBuilder extends
    * <code>.google.protobuf.Any data = 2;</code>
    */
   com.google.protobuf.AnyOrBuilder getDataOrBuilder();
+
+  /**
+   * <pre>
+   * 内部状态码
+   * </pre>
+   *
+   * <code>.RpcStatusCode statusCode = 3;</code>
+   * @return The enum numeric value on the wire for statusCode.
+   */
+  int getStatusCodeValue();
+  /**
+   * <pre>
+   * 内部状态码
+   * </pre>
+   *
+   * <code>.RpcStatusCode statusCode = 3;</code>
+   * @return The statusCode.
+   */
+  com.qifly.core.protocol.data.RpcStatusCode getStatusCode();
 }

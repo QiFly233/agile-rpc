@@ -38,11 +38,17 @@ public class Consumer {
      */
     private final List<String> endpoints;
 
-    public Consumer(Class<?> itf, List<String> endpoints) {
+    /**
+     * 序列化协议
+     */
+    private final int protocolType;
+
+    public Consumer(Class<?> itf, List<String> endpoints, int protocolType) {
         this.itf = itf;
         itfName = itf.getName();
         serviceName = itf.getSimpleName();
         this.endpoints = endpoints;
+        this.protocolType = protocolType;
         methodMap = getMethods();
     }
 
@@ -88,5 +94,9 @@ public class Consumer {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public int getProtocolType() {
+        return protocolType;
     }
 }

@@ -28,6 +28,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private RpcBody() {
+    statusCode_ = 0;
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
@@ -47,6 +48,10 @@ private static final long serialVersionUID = 0L;
   public static final int RPC_ID_FIELD_NUMBER = 1;
   private int rpcId_ = 0;
   /**
+   * <pre>
+   * 方法唯一标识
+   * </pre>
+   *
    * <code>int32 rpc_id = 1;</code>
    * @return The rpcId.
    */
@@ -93,6 +98,32 @@ private static final long serialVersionUID = 0L;
     return data_ == null ? com.google.protobuf.Any.getDefaultInstance() : data_;
   }
 
+  public static final int STATUSCODE_FIELD_NUMBER = 3;
+  private int statusCode_ = 0;
+  /**
+   * <pre>
+   * 内部状态码
+   * </pre>
+   *
+   * <code>.RpcStatusCode statusCode = 3;</code>
+   * @return The enum numeric value on the wire for statusCode.
+   */
+  @java.lang.Override public int getStatusCodeValue() {
+    return statusCode_;
+  }
+  /**
+   * <pre>
+   * 内部状态码
+   * </pre>
+   *
+   * <code>.RpcStatusCode statusCode = 3;</code>
+   * @return The statusCode.
+   */
+  @java.lang.Override public com.qifly.core.protocol.data.RpcStatusCode getStatusCode() {
+    com.qifly.core.protocol.data.RpcStatusCode result = com.qifly.core.protocol.data.RpcStatusCode.forNumber(statusCode_);
+    return result == null ? com.qifly.core.protocol.data.RpcStatusCode.UNRECOGNIZED : result;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -113,6 +144,9 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(2, getData());
     }
+    if (statusCode_ != com.qifly.core.protocol.data.RpcStatusCode.RPC_SUCCESS.getNumber()) {
+      output.writeEnum(3, statusCode_);
+    }
     getUnknownFields().writeTo(output);
   }
 
@@ -129,6 +163,10 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) != 0)) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, getData());
+    }
+    if (statusCode_ != com.qifly.core.protocol.data.RpcStatusCode.RPC_SUCCESS.getNumber()) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(3, statusCode_);
     }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
@@ -152,6 +190,7 @@ private static final long serialVersionUID = 0L;
       if (!getData()
           .equals(other.getData())) return false;
     }
+    if (statusCode_ != other.statusCode_) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -169,6 +208,8 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + DATA_FIELD_NUMBER;
       hash = (53 * hash) + getData().hashCode();
     }
+    hash = (37 * hash) + STATUSCODE_FIELD_NUMBER;
+    hash = (53 * hash) + statusCode_;
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -312,6 +353,7 @@ private static final long serialVersionUID = 0L;
         dataBuilder_.dispose();
         dataBuilder_ = null;
       }
+      statusCode_ = 0;
       return this;
     }
 
@@ -355,6 +397,9 @@ private static final long serialVersionUID = 0L;
             : dataBuilder_.build();
         to_bitField0_ |= 0x00000001;
       }
+      if (((from_bitField0_ & 0x00000004) != 0)) {
+        result.statusCode_ = statusCode_;
+      }
       result.bitField0_ |= to_bitField0_;
     }
 
@@ -375,6 +420,9 @@ private static final long serialVersionUID = 0L;
       }
       if (other.hasData()) {
         mergeData(other.getData());
+      }
+      if (other.statusCode_ != 0) {
+        setStatusCodeValue(other.getStatusCodeValue());
       }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
@@ -414,6 +462,11 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000002;
               break;
             } // case 18
+            case 24: {
+              statusCode_ = input.readEnum();
+              bitField0_ |= 0x00000004;
+              break;
+            } // case 24
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -433,6 +486,10 @@ private static final long serialVersionUID = 0L;
 
     private int rpcId_ ;
     /**
+     * <pre>
+     * 方法唯一标识
+     * </pre>
+     *
      * <code>int32 rpc_id = 1;</code>
      * @return The rpcId.
      */
@@ -441,6 +498,10 @@ private static final long serialVersionUID = 0L;
       return rpcId_;
     }
     /**
+     * <pre>
+     * 方法唯一标识
+     * </pre>
+     *
      * <code>int32 rpc_id = 1;</code>
      * @param value The rpcId to set.
      * @return This builder for chaining.
@@ -453,6 +514,10 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
+     * <pre>
+     * 方法唯一标识
+     * </pre>
+     *
      * <code>int32 rpc_id = 1;</code>
      * @return This builder for chaining.
      */
@@ -618,6 +683,77 @@ private static final long serialVersionUID = 0L;
         data_ = null;
       }
       return dataBuilder_;
+    }
+
+    private int statusCode_ = 0;
+    /**
+     * <pre>
+     * 内部状态码
+     * </pre>
+     *
+     * <code>.RpcStatusCode statusCode = 3;</code>
+     * @return The enum numeric value on the wire for statusCode.
+     */
+    @java.lang.Override public int getStatusCodeValue() {
+      return statusCode_;
+    }
+    /**
+     * <pre>
+     * 内部状态码
+     * </pre>
+     *
+     * <code>.RpcStatusCode statusCode = 3;</code>
+     * @param value The enum numeric value on the wire for statusCode to set.
+     * @return This builder for chaining.
+     */
+    public Builder setStatusCodeValue(int value) {
+      statusCode_ = value;
+      bitField0_ |= 0x00000004;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * 内部状态码
+     * </pre>
+     *
+     * <code>.RpcStatusCode statusCode = 3;</code>
+     * @return The statusCode.
+     */
+    @java.lang.Override
+    public com.qifly.core.protocol.data.RpcStatusCode getStatusCode() {
+      com.qifly.core.protocol.data.RpcStatusCode result = com.qifly.core.protocol.data.RpcStatusCode.forNumber(statusCode_);
+      return result == null ? com.qifly.core.protocol.data.RpcStatusCode.UNRECOGNIZED : result;
+    }
+    /**
+     * <pre>
+     * 内部状态码
+     * </pre>
+     *
+     * <code>.RpcStatusCode statusCode = 3;</code>
+     * @param value The statusCode to set.
+     * @return This builder for chaining.
+     */
+    public Builder setStatusCode(com.qifly.core.protocol.data.RpcStatusCode value) {
+      if (value == null) { throw new NullPointerException(); }
+      bitField0_ |= 0x00000004;
+      statusCode_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * 内部状态码
+     * </pre>
+     *
+     * <code>.RpcStatusCode statusCode = 3;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearStatusCode() {
+      bitField0_ = (bitField0_ & ~0x00000004);
+      statusCode_ = 0;
+      onChanged();
+      return this;
     }
 
     // @@protoc_insertion_point(builder_scope:RpcBody)

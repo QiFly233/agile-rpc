@@ -41,9 +41,14 @@ public final class RpcData {
   static {
     java.lang.String[] descriptorData = {
       "\n\rrpcdata.proto\032\031google/protobuf/any.pro" +
-      "to\"=\n\007RpcBody\022\016\n\006rpc_id\030\001 \001(\005\022\"\n\004data\030\002 " +
-      "\001(\0132\024.google.protobuf.AnyB,\n\034com.qifly.c" +
-      "ore.protocol.dataB\007RpcDataP\001\210\001\001b\006proto3"
+      "to\"a\n\007RpcBody\022\016\n\006rpc_id\030\001 \001(\005\022\"\n\004data\030\002 " +
+      "\001(\0132\024.google.protobuf.Any\022\"\n\nstatusCode\030" +
+      "\003 \001(\0162\016.RpcStatusCode*\232\001\n\rRpcStatusCode\022" +
+      "\017\n\013RPC_SUCCESS\020\000\022\026\n\021RPC_UNKNOWN_ERROR\020\350\007" +
+      "\022 \n\033RPC_SERVICE_NOT_FOUND_ERROR\020\351\007\022\037\n\032RP" +
+      "C_METHOD_NOT_FOUND_ERROR\020\352\007\022\035\n\030RPC_METHO" +
+      "D_REQUEST_ERROR\020\353\007B,\n\034com.qifly.core.pro" +
+      "tocol.dataB\007RpcDataP\001\210\001\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -55,7 +60,7 @@ public final class RpcData {
     internal_static_RpcBody_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_RpcBody_descriptor,
-        new java.lang.String[] { "RpcId", "Data", });
+        new java.lang.String[] { "RpcId", "Data", "StatusCode", });
     descriptor.resolveAllFeaturesImmutable();
     com.google.protobuf.AnyProto.getDescriptor();
   }

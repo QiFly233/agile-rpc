@@ -1,7 +1,5 @@
 package com.qifly.core.service;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.Message;
 import com.qifly.core.utils.ServiceUtil;
 
 import java.lang.reflect.Method;
@@ -38,11 +36,17 @@ public class Provider {
      */
     private final int port;
 
-    public Provider(Class<?> itf, Object impl, int port) {
+    /**
+     * 序列化协议
+     */
+    private final int protocolType;
+
+    public Provider(Class<?> itf, Object impl, int port, int protocolType) {
         this.itf = itf;
         this.impl = impl;
         this.port = port;
         serviceName = itf.getSimpleName();
+        this.protocolType = protocolType;
         methodMap = getMethods();
     }
 
@@ -64,17 +68,6 @@ public class Provider {
         return impl;
     }
 
-    public Message invokeMethod(int rpcId, Any any) {
-        RpcMethod rpcMethod = methodMap.get(rpcId);
-        Method method = rpcMethod.getMethod();
-        try {
-            Message req = any.unpack(rpcMethod.getReqType());
-            return (Message) method.invoke(impl, req);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     public RpcMethod getRpcMethod(int rpcId) {
         return methodMap.get(rpcId);
     }
@@ -92,5 +85,9 @@ public class Provider {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public int getProtocolType() {
+        return protocolType;
     }
 }

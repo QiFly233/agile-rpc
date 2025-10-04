@@ -1,13 +1,11 @@
 package com.qifly.core.transport.netty;
 
-import com.google.protobuf.Any;
-import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.protocol.frame.FrameCodec;
 import com.qifly.core.protocol.frame.RpcFrame;
 import com.qifly.core.retry.RetryExecutor;
 import com.qifly.core.transport.TransportClient;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -33,11 +31,10 @@ public class NettyClient implements TransportClient {
 
     private final Bootstrap bootstrap;
     private final EventLoopGroup workGroup = new NioEventLoopGroup(1);
-    private volatile Channel channel;
     private final ConcurrentMap<String, Channel> channelMap = new ConcurrentHashMap<>();
     private final int maxFrameLength = 1024 * 1024 + 16;
     private final AtomicLong requestId = new AtomicLong(1);
-    private final ConcurrentMap<Long, CompletableFuture<Any>> futureMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, CompletableFuture<RpcFrame>> futureMap = new ConcurrentHashMap<>();
 
     public NettyClient() {
         bootstrap = new Bootstrap();
@@ -75,7 +72,7 @@ public class NettyClient implements TransportClient {
 
     private void notifyConnect(ChannelFuture future, String host, int port) {
         String endpoint = host + ":" + port;
-        channel = future.channel();
+        Channel channel = future.channel();
         channelMap.put(endpoint, channel);
         logger.info("netty client connect {}:{} success", host, port);
     }
@@ -116,20 +113,17 @@ public class NettyClient implements TransportClient {
     }
 
     @Override
-    public CompletableFuture<Any> send(String endpoint, RpcBody body) {
+    public CompletableFuture<RpcFrame> send(String endpoint, ByteBuf body, int protocolType) {
         long id = requestId.getAndIncrement();
-        CompletableFuture<Any> future = new CompletableFuture<>();
+        CompletableFuture<RpcFrame> future = new CompletableFuture<>();
         futureMap.put(id, future);
         Channel ch = getChannel(endpoint);
-        ch.writeAndFlush(RpcFrame.request(1, false, id, Unpooled.wrappedBuffer(body.toByteArray())));
+        ch.writeAndFlush(RpcFrame.request(protocolType, false, id, body));
         return future;
     }
 
     @Override
     public void close() {
-        if (channel != null) {
-            channel.close();
-        }
         workGroup.shutdownGracefully();
     }
 }

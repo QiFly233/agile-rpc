@@ -1,9 +1,6 @@
 package com.qifly.core.transport.netty;
 
-import com.google.protobuf.Any;
-import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.protocol.frame.RpcFrame;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
@@ -16,9 +13,9 @@ class ClientHandler extends SimpleChannelInboundHandler<RpcFrame> {
 
     Logger logger = LoggerFactory.getLogger(ClientHandler.class);
 
-    private final ConcurrentMap<Long, CompletableFuture<Any>> futureMap;
+    private final ConcurrentMap<Long, CompletableFuture<RpcFrame>> futureMap;
 
-    ClientHandler(ConcurrentMap<Long, CompletableFuture<Any>> futureMap) {
+    ClientHandler(ConcurrentMap<Long, CompletableFuture<RpcFrame>> futureMap) {
         this.futureMap = futureMap;
     }
 
@@ -26,20 +23,11 @@ class ClientHandler extends SimpleChannelInboundHandler<RpcFrame> {
     protected void channelRead0(ChannelHandlerContext ctx, RpcFrame msg) {
         long requestId = msg.getRequestId();
         if (!msg.isRequest()) {
-            CompletableFuture<Any> future = futureMap.remove(requestId);
+            CompletableFuture<RpcFrame> future = futureMap.remove(requestId);
             if (future == null) {
                 return;
             }
-            ByteBuf byteBuf = msg.getBody();
-            byte[] bytes = new byte[byteBuf.readableBytes()];
-            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-            try {
-                RpcBody body = RpcBody.parseFrom(bytes);
-                logger.debug("netty client receive body:{}", body);
-                future.complete(body.getData());
-            } catch (Exception e) {
-                future.complete(null);
-            }
+            future.complete(msg);
         }
     }
 }

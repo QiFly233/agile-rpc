@@ -20,10 +20,16 @@ public class ProviderConfig {
      */
     private final int port;
 
-    public ProviderConfig(Class<?> serviceInterface, Object serviceImpl, int port) {
+    /**
+     * 序列化协议类型
+     */
+    private final int protocolType;
+
+    public ProviderConfig(Class<?> serviceInterface, Object serviceImpl, int port, int protocolType) {
         this.serviceInterface = serviceInterface;
         this.serviceImpl = serviceImpl;
         this.port = port;
+        this.protocolType = protocolType;
     }
 
     public Class<?> getServiceInterface() {
@@ -36,5 +42,9 @@ public class ProviderConfig {
 
     public int getPort() {
         return port;
+    }
+
+    public int getProtocolType() {
+        return protocolType;
     }
 }

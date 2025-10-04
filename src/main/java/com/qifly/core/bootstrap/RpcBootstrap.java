@@ -33,19 +33,29 @@ public class RpcBootstrap {
     RegistryConfig registryConfig;
 
     public RpcBootstrap addProvider(Class<?> serviceInterface, Object serviceImpl, int port) {
-        providerConfig = new ProviderConfig(serviceInterface, serviceImpl, port);
+        return addProvider(serviceInterface, serviceImpl, port, 1);
+    }
+
+    public RpcBootstrap addProvider(Class<?> serviceInterface, Object serviceImpl, int port, int protocolType) {
+        providerConfig = new ProviderConfig(serviceInterface, serviceImpl, port, protocolType);
         return this;
     }
 
-    // TODO 修改为直连
     public RpcBootstrap addConsumer(Class<?> serviceInterface, List<String> endpoints) {
-        consumerConfigs.add(new ConsumerConfig(serviceInterface, endpoints));
+        return addConsumer(serviceInterface, endpoints, 1);
+    }
+
+    public RpcBootstrap addConsumer(Class<?> serviceInterface, List<String> endpoints, int protocolType) {
+        consumerConfigs.add(new ConsumerConfig(serviceInterface, endpoints, protocolType));
         return this;
     }
 
     public RpcBootstrap addConsumer(Class<?> serviceInterface) {
-        consumerConfigs.add(new ConsumerConfig(serviceInterface));
-        return this;
+        return addConsumer(serviceInterface, 1);
+    }
+
+    public RpcBootstrap addConsumer(Class<?> serviceInterface, int protocolType) {
+        return addConsumer(serviceInterface, null, protocolType);
     }
 
     public RpcBootstrap addRegister(String baseUrl, int type) {
@@ -57,7 +67,7 @@ public class RpcBootstrap {
         RpcApp rpcApp = new RpcApp();
 
         if (providerConfig != null) {
-            Provider provider = new Provider(providerConfig.getServiceInterface(), providerConfig.getServiceImpl(), providerConfig.getPort());
+            Provider provider = new Provider(providerConfig.getServiceInterface(), providerConfig.getServiceImpl(), providerConfig.getPort(), providerConfig.getProtocolType());
             rpcApp.setProvider(provider);
             NettyServer nettyServer = new NettyServer(provider.getPort(), provider);
             rpcApp.setServer(nettyServer);
@@ -66,7 +76,7 @@ public class RpcBootstrap {
         if (consumerConfigs != null && !consumerConfigs.isEmpty()) {
             List<Consumer> consumers = new ArrayList<>();
             for (ConsumerConfig c : consumerConfigs) {
-                Consumer consumer = new Consumer(c.getServiceInterface(), c.getEndpoints());
+                Consumer consumer = new Consumer(c.getServiceInterface(), c.getEndpoints(), c.getProtocolType());
                 consumers.add(consumer);
             }
             rpcApp.setConsumers(consumers);

@@ -17,13 +17,19 @@ public class ConsumerConfig {
      */
     private final List<String> endpoints;
 
-    public ConsumerConfig(Class<?> serviceInterface) {
-        this(serviceInterface, null);
+    /**
+     * 序列化协议类型
+     */
+    private final int protocolType;
+
+    public ConsumerConfig(Class<?> serviceInterface, int protocolType) {
+        this(serviceInterface, null, protocolType);
     }
 
-    public ConsumerConfig(Class<?> serviceInterface, List<String> endpoints) {
+    public ConsumerConfig(Class<?> serviceInterface, List<String> endpoints, int protocolType) {
         this.serviceInterface = serviceInterface;
         this.endpoints = endpoints;
+        this.protocolType = protocolType;
     }
 
     public Class<?> getServiceInterface() {
@@ -32,5 +38,9 @@ public class ConsumerConfig {
 
     public List<String> getEndpoints() {
         return endpoints;
+    }
+
+    public int getProtocolType() {
+        return protocolType;
     }
 }
