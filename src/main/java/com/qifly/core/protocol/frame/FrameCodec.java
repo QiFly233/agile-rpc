@@ -11,7 +11,7 @@ public class FrameCodec extends ByteToMessageCodec<RpcFrame> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, RpcFrame rpcFrame, ByteBuf byteBuf) throws Exception {
-        ByteBuf body = rpcFrame.getBody() == null ? Unpooled.EMPTY_BUFFER : rpcFrame.getBody();
+        ByteBuf body = rpcFrame.getBody() == null ? Unpooled.EMPTY_BUFFER : Unpooled.wrappedBuffer(rpcFrame.getBody());
         byteBuf.writeShort(RpcFrame.MAGIC);
         byteBuf.writeByte(rpcFrame.getFlags());
         byteBuf.writeByte(rpcFrame.getStatus());
@@ -37,12 +37,9 @@ public class FrameCodec extends ByteToMessageCodec<RpcFrame> {
         int length = byteBuf.readInt();
         long reqId = byteBuf.readLong();
 
-        ByteBuf body;
+        byte[] body = new byte[length];
         if (length > 0) {
-            body = byteBuf.readRetainedSlice(length);
-        }
-        else {
-            body = Unpooled.EMPTY_BUFFER;
+            byteBuf.readBytes(body);
         }
 
         list.add(new RpcFrame(magic, flags, status, length, reqId, body));

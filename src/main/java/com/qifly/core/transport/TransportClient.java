@@ -1,7 +1,6 @@
 package com.qifly.core.transport;
 
 import com.qifly.core.protocol.frame.RpcFrame;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 
 import java.io.Closeable;
@@ -30,7 +29,7 @@ public interface TransportClient extends Closeable {
 
     Channel getChannel(String endpoint);
 
-    CompletableFuture<RpcFrame> send(String endpoint, ByteBuf body, int protocolType);
+    CompletableFuture<RpcFrame> send(String endpoint, byte[] body, int protocolType);
 
 	@Override
 	void close();

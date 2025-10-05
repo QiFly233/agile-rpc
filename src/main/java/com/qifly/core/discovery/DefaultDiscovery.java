@@ -62,6 +62,10 @@ public class DefaultDiscovery implements Discovery {
                 }
             }
         }
+        // TODO 等待启动时connect完成后再结束
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {}
     }
 
     @Override

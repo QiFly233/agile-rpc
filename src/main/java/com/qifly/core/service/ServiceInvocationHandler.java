@@ -7,8 +7,6 @@ import com.qifly.core.cluster.Cluster;
 import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.protocol.frame.RpcFrame;
 import com.qifly.core.transport.TransportClient;
-import com.qifly.core.utils.RpcBodyUtil;
-import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +40,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
         }
         String endpoint = cluster.getEndpoint(consumer.getServiceName());
         if (endpoint == null) {
+            logger.error("endpoint is null");
             return null;
         }
         int rpcId = consumer.getRpcId(method);
@@ -52,7 +51,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
                     .setRpcId(rpcId)
                     .setData(Any.pack(req))
                     .build();
-            future = client.send(endpoint, RpcBodyUtil.parseFrom(reqBody), consumer.getProtocolType());
+            future = client.send(endpoint, reqBody.toByteArray(), consumer.getProtocolType());
         }
         else {
             logger.error("unsupported protocol type");
@@ -67,10 +66,10 @@ public class ServiceInvocationHandler implements InvocationHandler {
                 logger.error("server response error, status:{}", rpcFrame.getStatus());
                 return null;
             }
-            ByteBuf byteBuf = rpcFrame.getBody();
+            byte[] bytes = rpcFrame.getBody();
             if (rpcFrame.getProtocolType() == 1) {
                 try {
-                    RpcBody rpcBody = RpcBodyUtil.parseFrom(byteBuf);
+                    RpcBody rpcBody = RpcBody.parseFrom(bytes);
                     Any any = rpcBody.getData();
                     return any.unpack(consumer.getRespType(method));
                 } catch (InvalidProtocolBufferException e) {

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 
-class ClientHandler extends SimpleChannelInboundHandler<RpcFrame> {
+public class ClientHandler extends SimpleChannelInboundHandler<RpcFrame> {
 
     Logger logger = LoggerFactory.getLogger(ClientHandler.class);
 

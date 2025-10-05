@@ -5,7 +5,6 @@ import com.qifly.core.protocol.frame.RpcFrame;
 import com.qifly.core.retry.RetryExecutor;
 import com.qifly.core.transport.TransportClient;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -113,7 +112,7 @@ public class NettyClient implements TransportClient {
     }
 
     @Override
-    public CompletableFuture<RpcFrame> send(String endpoint, ByteBuf body, int protocolType) {
+    public CompletableFuture<RpcFrame> send(String endpoint, byte[] body, int protocolType) {
         long id = requestId.getAndIncrement();
         CompletableFuture<RpcFrame> future = new CompletableFuture<>();
         futureMap.put(id, future);
