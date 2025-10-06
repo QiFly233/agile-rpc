@@ -4,6 +4,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import com.qifly.core.cluster.Cluster;
+import com.qifly.core.exception.RpcException;
 import com.qifly.core.protocol.data.RpcBody;
 import com.qifly.core.protocol.frame.RpcFrame;
 import com.qifly.core.transport.TransportClient;
@@ -41,7 +42,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
         String endpoint = cluster.getEndpoint(consumer.getServiceName());
         if (endpoint == null) {
             logger.error("endpoint is null");
-            return null;
+            throw new RpcException("service no connect");
         }
         int rpcId = consumer.getRpcId(method);
         CompletableFuture<RpcFrame> future;
@@ -55,29 +56,29 @@ public class ServiceInvocationHandler implements InvocationHandler {
         }
         else {
             logger.error("unsupported protocol type");
-            return null;
+            throw new RpcException("unsupported request protocol");
         }
-        return future.thenApply(rpcFrame -> {
-            if (rpcFrame.getProtocolType() != consumer.getProtocolType()) {
-                logger.error("inconsistent protocol type");
-                return null;
+
+        RpcFrame rpcFrame = future.get();
+        if (rpcFrame.getProtocolType() != consumer.getProtocolType()) {
+            logger.error("inconsistent protocol type");
+            throw new RpcException("inconsistent protocol between server and client");
+        }
+        if (rpcFrame.getStatus() != 0) {
+            logger.error("server response error, status:{}", rpcFrame.getStatus());
+            throw new RpcException("server response error");
+        }
+        byte[] bytes = rpcFrame.getBody();
+        if (rpcFrame.getProtocolType() == 1) {
+            try {
+                RpcBody rpcBody = RpcBody.parseFrom(bytes);
+                Any any = rpcBody.getData();
+                return any.unpack(consumer.getRespType(method));
+            } catch (InvalidProtocolBufferException e) {
+                logger.error("protocol parse error", e);
+                throw new RpcException("protocol parse error", e);
             }
-            if (rpcFrame.getStatus() != 0) {
-                logger.error("server response error, status:{}", rpcFrame.getStatus());
-                return null;
-            }
-            byte[] bytes = rpcFrame.getBody();
-            if (rpcFrame.getProtocolType() == 1) {
-                try {
-                    RpcBody rpcBody = RpcBody.parseFrom(bytes);
-                    Any any = rpcBody.getData();
-                    return any.unpack(consumer.getRespType(method));
-                } catch (InvalidProtocolBufferException e) {
-                    logger.error("protocol parse error", e);
-                    return null;
-                }
-            }
-            return null;
-        }).get();
+        }
+        throw new RpcException("unsupported response protocol");
     }
 }
