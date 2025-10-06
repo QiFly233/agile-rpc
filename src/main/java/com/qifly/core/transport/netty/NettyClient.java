@@ -1,5 +1,6 @@
 package com.qifly.core.transport.netty;
 
+import com.qifly.core.exception.RpcClientException;
 import com.qifly.core.protocol.frame.FrameCodec;
 import com.qifly.core.protocol.frame.RpcFrame;
 import com.qifly.core.retry.RetryExecutor;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class NettyClient implements TransportClient {
@@ -34,6 +36,7 @@ public class NettyClient implements TransportClient {
     private final int maxFrameLength = 1024 * 1024 + 16;
     private final AtomicLong requestId = new AtomicLong(1);
     private final ConcurrentMap<Long, CompletableFuture<RpcFrame>> futureMap = new ConcurrentHashMap<>();
+    private final int timeoutMs = 3000;
 
     public NettyClient() {
         bootstrap = new Bootstrap();
@@ -117,6 +120,12 @@ public class NettyClient implements TransportClient {
         CompletableFuture<RpcFrame> future = new CompletableFuture<>();
         futureMap.put(id, future);
         Channel ch = getChannel(endpoint);
+        ch.eventLoop().schedule(() -> {
+            CompletableFuture<RpcFrame> removed = futureMap.remove(id);
+            if (removed != null && !removed.isDone()) {
+                removed.completeExceptionally(new RpcClientException("rpc request timeout"));
+            }
+        }, timeoutMs, TimeUnit.MILLISECONDS);
         ch.writeAndFlush(RpcFrame.request(protocolType, false, id, body));
         return future;
     }
