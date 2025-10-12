@@ -1,0 +1,19 @@
+syntax="proto3";
+
+option java_multiple_files=true;
+option java_generic_services=true;
+
+option java_package="com.qifly.core.protocol.frame.meta";
+option java_outer_classname="RpcMeta";
+
+/**
+  rpc 元数据定义
+ */
+message RpcMetaData {
+  Trace trace = 1;
+}
+
+message Trace {
+  string trace_id = 1;
+  string span_id = 2;
+}

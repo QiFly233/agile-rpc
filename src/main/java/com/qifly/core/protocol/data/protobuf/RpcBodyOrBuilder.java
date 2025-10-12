@@ -3,7 +3,7 @@
 // source: rpcdata.proto
 // Protobuf Java Version: 4.32.0
 
-package com.qifly.core.protocol.data;
+package com.qifly.core.protocol.data.protobuf;
 
 @com.google.protobuf.Generated
 public interface RpcBodyOrBuilder extends
@@ -64,5 +64,5 @@ public interface RpcBodyOrBuilder extends
    * <code>.RpcStatusCode statusCode = 3;</code>
    * @return The statusCode.
    */
-  com.qifly.core.protocol.data.RpcStatusCode getStatusCode();
+  com.qifly.core.protocol.data.protobuf.RpcStatusCode getStatusCode();
 }

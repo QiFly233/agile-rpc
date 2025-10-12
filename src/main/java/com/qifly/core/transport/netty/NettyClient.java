@@ -3,6 +3,7 @@ package com.qifly.core.transport.netty;
 import com.qifly.core.exception.RpcClientException;
 import com.qifly.core.protocol.frame.FrameCodec;
 import com.qifly.core.protocol.frame.RpcFrame;
+import com.qifly.core.protocol.frame.meta.RpcMetaData;
 import com.qifly.core.retry.RetryExecutor;
 import com.qifly.core.transport.TransportClient;
 import io.netty.bootstrap.Bootstrap;
@@ -115,7 +116,7 @@ public class NettyClient implements TransportClient {
     }
 
     @Override
-    public CompletableFuture<RpcFrame> send(String endpoint, byte[] body, int protocolType) {
+    public CompletableFuture<RpcFrame> send(String endpoint, RpcMetaData metaData, byte[] body, int protocolType) {
         long id = requestId.getAndIncrement();
         CompletableFuture<RpcFrame> future = new CompletableFuture<>();
         futureMap.put(id, future);
@@ -126,7 +127,7 @@ public class NettyClient implements TransportClient {
                 removed.completeExceptionally(new RpcClientException("rpc request timeout"));
             }
         }, timeoutMs, TimeUnit.MILLISECONDS);
-        ch.writeAndFlush(RpcFrame.request(protocolType, false, id, body));
+        ch.writeAndFlush(RpcFrame.request(protocolType, false, id, metaData, body));
         return future;
     }
 

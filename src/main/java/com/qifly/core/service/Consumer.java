@@ -1,6 +1,5 @@
 package com.qifly.core.service;
 
-import com.google.protobuf.Message;
 import com.qifly.core.utils.ServiceUtil;
 
 import java.lang.reflect.Method;
@@ -71,13 +70,14 @@ public class Consumer {
     }
 
     public int getRpcId(Method method) {
-        if (methodMap.containsKey(method)) {
-            return methodMap.get(method).getRpcId();
-        }
-        return 0;
+        return methodMap.get(method).getRpcId();
     }
 
-    public Class<? extends Message> getRespType(Method method) {
+    public String getMethodName(Method method) {
+        return methodMap.get(method).getMethodName();
+    }
+
+    public Class<?> getRespType(Method method) {
         if (methodMap.containsKey(method)) {
             return methodMap.get(method).getRespType();
         }

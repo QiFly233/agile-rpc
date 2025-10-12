@@ -3,7 +3,7 @@
 // source: rpcdata.proto
 // Protobuf Java Version: 4.32.0
 
-package com.qifly.core.protocol.data;
+package com.qifly.core.protocol.data.protobuf;
 
 /**
  * Protobuf enum {@code RpcStatusCode}
@@ -156,7 +156,7 @@ public enum RpcStatusCode
   }
   public static com.google.protobuf.Descriptors.EnumDescriptor
       getDescriptor() {
-    return com.qifly.core.protocol.data.RpcData.getDescriptor().getEnumTypes().get(0);
+    return com.qifly.core.protocol.data.protobuf.RpcData.getDescriptor().getEnumTypes().get(0);
   }
 
   private static final RpcStatusCode[] VALUES = values();

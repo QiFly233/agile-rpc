@@ -1,30 +1,26 @@
 package com.qifly.core.service;
 
-import com.google.protobuf.Message;
-
 import java.lang.reflect.Method;
 
 public class RpcMethod {
 
     private final int rpcId;
 
+    private final String methodName;
+
     private final Method method;
 
-    private final Class<? extends Message> reqType;
+    private final Class<?> reqType;
 
-    private final Class<? extends Message> respType;
+    private final Class<?> respType;
 
     public RpcMethod(int rpcId, Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        Class<?> returnType = method.getReturnType();
-        @SuppressWarnings("unchecked")
-        Class<? extends Message> reqType = (Class<? extends Message>) parameterTypes[0];
-        @SuppressWarnings("unchecked")
-        Class<? extends Message> respType = (Class<? extends Message>) returnType;
         this.rpcId = rpcId;
+        this.methodName = method.getName();
         this.method = method;
-        this.reqType = reqType;
-        this.respType = respType;
+        this.reqType = parameterTypes[0];
+        this.respType = method.getReturnType();;
     }
 
     public int getRpcId() {
@@ -35,11 +31,15 @@ public class RpcMethod {
         return method;
     }
 
-    public Class<? extends Message> getReqType() {
+    public Class<?> getReqType() {
         return reqType;
     }
 
-    public Class<? extends Message> getRespType() {
+    public Class<?> getRespType() {
         return respType;
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 }

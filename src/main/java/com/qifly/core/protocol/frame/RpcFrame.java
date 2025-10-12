@@ -1,5 +1,7 @@
 package com.qifly.core.protocol.frame;
 
+import com.qifly.core.protocol.frame.meta.RpcMetaData;
+
 /**
  * 自定义协议格式
  */
@@ -12,38 +14,28 @@ public class RpcFrame {
     private final byte status; // 状态（8bit）, 与业务层状态无关
     private final int length; // 负载长度（32bit）
     private final long requestId; // 请求Id（64bit）
-    private final byte[] body; // 消息体
+    // body = rpcMetaData + rpcBody
+    private final RpcMetaData rpcMetaData;
+    private final byte[] rpcBody; // 消息体
 
-    public RpcFrame(short magic, byte flags, byte status, int length, long requestId, byte[] body) {
+    public RpcFrame(short magic, byte flags, byte status, int length, long requestId, RpcMetaData rpcMetaData, byte[] rpcBody) {
         this.magic = magic;
         this.flags = flags;
         this.status = status;
         this.length = length;
         this.requestId = requestId;
-        this.body = body;
+        this.rpcMetaData = rpcMetaData;
+        this.rpcBody = rpcBody;
     }
 
-    public static RpcFrame request(int protocolType, boolean heartbeat, long requestId, byte[] body) {
+    public static RpcFrame request(int protocolType, boolean heartbeat, long requestId, RpcMetaData rpcMetaData, byte[] rpcBody) {
         byte f = Flag.build(protocolType, true, heartbeat);
-        return new RpcFrame(MAGIC, f, (byte) 0, body.length, requestId, body);
+        return new RpcFrame(MAGIC, f, (byte) 0, rpcBody.length, requestId, rpcMetaData, rpcBody);
     }
 
-    public static RpcFrame response(int protocolType, boolean heartbeat, long requestId, byte status, byte[] body) {
+    public static RpcFrame response(int protocolType, boolean heartbeat, long requestId, byte status, RpcMetaData rpcMetaData, byte[] rpcBody) {
         byte f = Flag.build(protocolType, false, heartbeat);
-        return new RpcFrame(MAGIC, f, status, body.length, requestId, body);
-    }
-
-    public static RpcFrame error(int protocolType, boolean heartbeat, long requestId, byte status) {
-        return response(protocolType, heartbeat, requestId, status, new byte[0]);
-    }
-
-    public static RpcFrame ok(int protocolType, boolean heartbeat, long requestId, byte[] body) {
-        return response(protocolType, heartbeat, requestId, RpcFrameStatus.SUCCESS, body);
-    }
-
-
-    public short getMagic() {
-        return magic;
+        return new RpcFrame(MAGIC, f, status, rpcBody.length, requestId, rpcMetaData, rpcBody);
     }
 
     public byte getFlags() {
@@ -62,8 +54,8 @@ public class RpcFrame {
         return requestId;
     }
 
-    public byte[] getBody() {
-        return body;
+    public byte[] getRpcBody() {
+        return rpcBody;
     }
 
     public boolean isRequest() {
@@ -76,6 +68,10 @@ public class RpcFrame {
 
     public int getProtocolType() {
         return Flag.protocolType(flags);
+    }
+
+    public RpcMetaData getRpcMetaData() {
+        return rpcMetaData;
     }
 
     private static class Flag {

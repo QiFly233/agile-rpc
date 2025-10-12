@@ -25,7 +25,6 @@ public class NettyServer implements TransportServer {
     Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
     private final int port;
-    private final Provider provider;
     private final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     private final EventLoopGroup workerGroup = new NioEventLoopGroup();
     private final ServerBootstrap bootstrap;
@@ -34,14 +33,13 @@ public class NettyServer implements TransportServer {
 
     public NettyServer(int port, Provider provider) {
         this.port = port;
-        this.provider = provider;
         bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
+                        ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 4, 4, 8, 0));
                         ch.pipeline().addLast(new IdleStateHandler(0, 0, 180));
                         ch.pipeline().addLast(new FrameCodec());

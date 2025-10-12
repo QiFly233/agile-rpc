@@ -1,13 +1,16 @@
 package com.qifly.core.service;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Message;
 import com.qifly.core.cluster.Cluster;
 import com.qifly.core.exception.RpcException;
-import com.qifly.core.protocol.data.RpcBody;
+import com.qifly.core.protocol.data.RpcBodyHandler;
+import com.qifly.core.protocol.data.RpcBodyHandlerFactory;
 import com.qifly.core.protocol.frame.RpcFrame;
+import com.qifly.core.protocol.frame.meta.RpcMetaData;
+import com.qifly.core.protocol.frame.meta.Trace;
+import com.qifly.core.trace.Span;
+import com.qifly.core.trace.Tracer;
 import com.qifly.core.transport.TransportClient;
+import com.qifly.core.transport.context.RpcClientContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,57 +31,67 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
     private final Cluster cluster;
 
+    private final RpcBodyHandler handler;
+
     public ServiceInvocationHandler(Consumer consumer, TransportClient client, Cluster cluster) {
         this.consumer = consumer;
         this.client = client;
         this.cluster = cluster;
+        this.handler = RpcBodyHandlerFactory.getHandler(consumer.getProtocolType());
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (consumer.getRpcId(method) <= 0) {
+        int rpcId = consumer.getRpcId(method);
+        String serviceName = consumer.getServiceName();
+        String methodName = consumer.getMethodName(method);
+        if (rpcId <= 0) {
             return method.invoke(this, args);
         }
-        String endpoint = cluster.getEndpoint(consumer.getServiceName());
-        if (endpoint == null) {
-            logger.error("endpoint is null");
-            throw new RpcException("service no connect");
+        Span span = Tracer.start("rpc.client#" + serviceName + "." + methodName);
+        String endpoint = cluster.getEndpoint(serviceName);
+        try {
+            if (endpoint == null) {
+                throw new RpcException("service no connect");
+            }
+            RpcClientContext ctx = new RpcClientContext(span, args[0]);
+            sendAndReceive(method, endpoint, ctx);
+            return ctx.getRespBody();
+        } catch (RpcException e) {
+            span.setAttribute("error", e.getMessage());
+            throw e;
+        } finally {
+            Tracer.end(span);
         }
-        int rpcId = consumer.getRpcId(method);
-        CompletableFuture<RpcFrame> future;
-        if (consumer.getProtocolType() == 1) {
-            Message req = (Message) args[0];
-            RpcBody reqBody = RpcBody.newBuilder()
-                    .setRpcId(rpcId)
-                    .setData(Any.pack(req))
-                    .build();
-            future = client.send(endpoint, reqBody.toByteArray(), consumer.getProtocolType());
-        }
-        else {
-            logger.error("unsupported protocol type");
-            throw new RpcException("unsupported request protocol");
-        }
+    }
 
+    private void sendAndReceive(Method method, String endpoint, RpcClientContext ctx) throws Throwable {
+        Span span = ctx.getSpan();
+        span.setAttribute("req", ctx.getReqBody());
+        CompletableFuture<RpcFrame> future = send(method, endpoint, ctx);
+        receive(method, ctx, future);
+        span.setAttribute("resp", ctx.getRespBody());
+    }
+
+    private CompletableFuture<RpcFrame> send(Method method, String endpoint, RpcClientContext ctx) {
+        Span span = ctx.getSpan();
+        RpcMetaData rpcMetaData = RpcMetaData.newBuilder()
+                .setTrace(Trace.newBuilder().setTraceId(span.getTraceId()).setSpanId(span.getSpanId()).build())
+                .build();
+        byte[] bytes = handler.toReq(consumer.getRpcId(method), ctx.getReqBody());
+        return client.send(endpoint, rpcMetaData, bytes, consumer.getProtocolType());
+    }
+
+    private void receive(Method method, RpcClientContext ctx, CompletableFuture<RpcFrame> future) throws Throwable {
         RpcFrame rpcFrame = future.get();
         if (rpcFrame.getProtocolType() != consumer.getProtocolType()) {
-            logger.error("inconsistent protocol type");
             throw new RpcException("inconsistent protocol between server and client");
         }
         if (rpcFrame.getStatus() != 0) {
-            logger.error("server response error, status:{}", rpcFrame.getStatus());
-            throw new RpcException("server response error");
+            throw new RpcException("server response error, status=" + rpcFrame.getStatus());
         }
-        byte[] bytes = rpcFrame.getBody();
-        if (rpcFrame.getProtocolType() == 1) {
-            try {
-                RpcBody rpcBody = RpcBody.parseFrom(bytes);
-                Any any = rpcBody.getData();
-                return any.unpack(consumer.getRespType(method));
-            } catch (InvalidProtocolBufferException e) {
-                logger.error("protocol parse error", e);
-                throw new RpcException("protocol parse error", e);
-            }
-        }
-        throw new RpcException("unsupported response protocol");
+        byte[] resBytes = rpcFrame.getRpcBody();
+        Object resp = handler.toResp(resBytes, consumer.getRespType(method));
+        ctx.setRespBody(resp);
     }
 }

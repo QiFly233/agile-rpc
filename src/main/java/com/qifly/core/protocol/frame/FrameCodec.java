@@ -1,7 +1,8 @@
 package com.qifly.core.protocol.frame;
 
+import com.qifly.core.protocol.frame.meta.RpcMetaData;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
 
@@ -11,13 +12,23 @@ public class FrameCodec extends ByteToMessageCodec<RpcFrame> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, RpcFrame rpcFrame, ByteBuf byteBuf) throws Exception {
-        ByteBuf body = rpcFrame.getBody() == null ? Unpooled.EMPTY_BUFFER : Unpooled.wrappedBuffer(rpcFrame.getBody());
+        RpcMetaData rpcMetaData = rpcFrame.getRpcMetaData();
+        int metaLen = (rpcMetaData == null) ? 0 : rpcMetaData.getSerializedSize();
+        byte[] rpcBodyBytes = rpcFrame.getRpcBody() == null ? new byte[0] : rpcFrame.getRpcBody();
+        int length = 4 + metaLen + rpcBodyBytes.length;
+
         byteBuf.writeShort(RpcFrame.MAGIC);
         byteBuf.writeByte(rpcFrame.getFlags());
         byteBuf.writeByte(rpcFrame.getStatus());
-        byteBuf.writeInt(body.readableBytes());
+        byteBuf.writeInt(length);
         byteBuf.writeLong(rpcFrame.getRequestId());
-        if (body.readableBytes() > 0) byteBuf.writeBytes(body);
+
+        // body (int + meta + rpcBody)
+        byteBuf.writeInt(metaLen);
+        if (metaLen > 0) {
+            rpcMetaData.writeTo(new ByteBufOutputStream(byteBuf));
+        }
+        byteBuf.writeBytes(rpcBodyBytes);
     }
 
     @Override
@@ -37,11 +48,29 @@ public class FrameCodec extends ByteToMessageCodec<RpcFrame> {
         int length = byteBuf.readInt();
         long reqId = byteBuf.readLong();
 
-        byte[] body = new byte[length];
-        if (length > 0) {
-            byteBuf.readBytes(body);
+        if (length < 4) {
+            ctx.close();
+            return;
         }
 
-        list.add(new RpcFrame(magic, flags, status, length, reqId, body));
+        int rpcMetaDataLength = byteBuf.readInt();
+        if (rpcMetaDataLength < 0) {
+            ctx.close();
+            return;
+        }
+
+        byte[] rpcMetaDataBytes = new byte[rpcMetaDataLength];
+        byteBuf.readBytes(rpcMetaDataBytes);
+        RpcMetaData rpcMetaData = RpcMetaData.parseFrom(rpcMetaDataBytes);
+
+        int rpcBodyLength = length - 4 - rpcMetaDataLength;
+        if (rpcBodyLength < 0) {
+            ctx.close();
+            return;
+        }
+        byte[] rpcBody = new byte[rpcBodyLength];
+        byteBuf.readBytes(rpcBody);
+
+        list.add(new RpcFrame(magic, flags, status, length, reqId, rpcMetaData, rpcBody));
     }
 }

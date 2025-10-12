@@ -3,7 +3,7 @@
 // source: rpcdata.proto
 // Protobuf Java Version: 4.32.0
 
-package com.qifly.core.protocol.data;
+package com.qifly.core.protocol.data.protobuf;
 
 /**
  * Protobuf type {@code RpcBody}
@@ -33,15 +33,15 @@ private static final long serialVersionUID = 0L;
 
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return com.qifly.core.protocol.data.RpcData.internal_static_RpcBody_descriptor;
+    return com.qifly.core.protocol.data.protobuf.RpcData.internal_static_RpcBody_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return com.qifly.core.protocol.data.RpcData.internal_static_RpcBody_fieldAccessorTable
+    return com.qifly.core.protocol.data.protobuf.RpcData.internal_static_RpcBody_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            com.qifly.core.protocol.data.RpcBody.class, com.qifly.core.protocol.data.RpcBody.Builder.class);
+            com.qifly.core.protocol.data.protobuf.RpcBody.class, com.qifly.core.protocol.data.protobuf.RpcBody.Builder.class);
   }
 
   private int bitField0_;
@@ -119,9 +119,9 @@ private static final long serialVersionUID = 0L;
    * <code>.RpcStatusCode statusCode = 3;</code>
    * @return The statusCode.
    */
-  @java.lang.Override public com.qifly.core.protocol.data.RpcStatusCode getStatusCode() {
-    com.qifly.core.protocol.data.RpcStatusCode result = com.qifly.core.protocol.data.RpcStatusCode.forNumber(statusCode_);
-    return result == null ? com.qifly.core.protocol.data.RpcStatusCode.UNRECOGNIZED : result;
+  @java.lang.Override public com.qifly.core.protocol.data.protobuf.RpcStatusCode getStatusCode() {
+    com.qifly.core.protocol.data.protobuf.RpcStatusCode result = com.qifly.core.protocol.data.protobuf.RpcStatusCode.forNumber(statusCode_);
+    return result == null ? com.qifly.core.protocol.data.protobuf.RpcStatusCode.UNRECOGNIZED : result;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -144,7 +144,7 @@ private static final long serialVersionUID = 0L;
     if (((bitField0_ & 0x00000001) != 0)) {
       output.writeMessage(2, getData());
     }
-    if (statusCode_ != com.qifly.core.protocol.data.RpcStatusCode.RPC_SUCCESS.getNumber()) {
+    if (statusCode_ != com.qifly.core.protocol.data.protobuf.RpcStatusCode.RPC_SUCCESS.getNumber()) {
       output.writeEnum(3, statusCode_);
     }
     getUnknownFields().writeTo(output);
@@ -164,7 +164,7 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(2, getData());
     }
-    if (statusCode_ != com.qifly.core.protocol.data.RpcStatusCode.RPC_SUCCESS.getNumber()) {
+    if (statusCode_ != com.qifly.core.protocol.data.protobuf.RpcStatusCode.RPC_SUCCESS.getNumber()) {
       size += com.google.protobuf.CodedOutputStream
         .computeEnumSize(3, statusCode_);
     }
@@ -178,10 +178,10 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof com.qifly.core.protocol.data.RpcBody)) {
+    if (!(obj instanceof com.qifly.core.protocol.data.protobuf.RpcBody)) {
       return super.equals(obj);
     }
-    com.qifly.core.protocol.data.RpcBody other = (com.qifly.core.protocol.data.RpcBody) obj;
+    com.qifly.core.protocol.data.protobuf.RpcBody other = (com.qifly.core.protocol.data.protobuf.RpcBody) obj;
 
     if (getRpcId()
         != other.getRpcId()) return false;
@@ -215,44 +215,44 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(byte[] data)
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(java.io.InputStream input)
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseWithIOException(PARSER, input);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -260,26 +260,26 @@ private static final long serialVersionUID = 0L;
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
 
-  public static com.qifly.core.protocol.data.RpcBody parseDelimitedFrom(java.io.InputStream input)
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseDelimitedWithIOException(PARSER, input);
   }
 
-  public static com.qifly.core.protocol.data.RpcBody parseDelimitedFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessage
         .parseWithIOException(PARSER, input);
   }
-  public static com.qifly.core.protocol.data.RpcBody parseFrom(
+  public static com.qifly.core.protocol.data.protobuf.RpcBody parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -292,7 +292,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(com.qifly.core.protocol.data.RpcBody prototype) {
+  public static Builder newBuilder(com.qifly.core.protocol.data.protobuf.RpcBody prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -313,21 +313,21 @@ private static final long serialVersionUID = 0L;
   public static final class Builder extends
       com.google.protobuf.GeneratedMessage.Builder<Builder> implements
       // @@protoc_insertion_point(builder_implements:RpcBody)
-      com.qifly.core.protocol.data.RpcBodyOrBuilder {
+      com.qifly.core.protocol.data.protobuf.RpcBodyOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return com.qifly.core.protocol.data.RpcData.internal_static_RpcBody_descriptor;
+      return com.qifly.core.protocol.data.protobuf.RpcData.internal_static_RpcBody_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return com.qifly.core.protocol.data.RpcData.internal_static_RpcBody_fieldAccessorTable
+      return com.qifly.core.protocol.data.protobuf.RpcData.internal_static_RpcBody_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              com.qifly.core.protocol.data.RpcBody.class, com.qifly.core.protocol.data.RpcBody.Builder.class);
+              com.qifly.core.protocol.data.protobuf.RpcBody.class, com.qifly.core.protocol.data.protobuf.RpcBody.Builder.class);
     }
 
-    // Construct using com.qifly.core.protocol.data.RpcBody.newBuilder()
+    // Construct using com.qifly.core.protocol.data.protobuf.RpcBody.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -360,17 +360,17 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return com.qifly.core.protocol.data.RpcData.internal_static_RpcBody_descriptor;
+      return com.qifly.core.protocol.data.protobuf.RpcData.internal_static_RpcBody_descriptor;
     }
 
     @java.lang.Override
-    public com.qifly.core.protocol.data.RpcBody getDefaultInstanceForType() {
-      return com.qifly.core.protocol.data.RpcBody.getDefaultInstance();
+    public com.qifly.core.protocol.data.protobuf.RpcBody getDefaultInstanceForType() {
+      return com.qifly.core.protocol.data.protobuf.RpcBody.getDefaultInstance();
     }
 
     @java.lang.Override
-    public com.qifly.core.protocol.data.RpcBody build() {
-      com.qifly.core.protocol.data.RpcBody result = buildPartial();
+    public com.qifly.core.protocol.data.protobuf.RpcBody build() {
+      com.qifly.core.protocol.data.protobuf.RpcBody result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -378,14 +378,14 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public com.qifly.core.protocol.data.RpcBody buildPartial() {
-      com.qifly.core.protocol.data.RpcBody result = new com.qifly.core.protocol.data.RpcBody(this);
+    public com.qifly.core.protocol.data.protobuf.RpcBody buildPartial() {
+      com.qifly.core.protocol.data.protobuf.RpcBody result = new com.qifly.core.protocol.data.protobuf.RpcBody(this);
       if (bitField0_ != 0) { buildPartial0(result); }
       onBuilt();
       return result;
     }
 
-    private void buildPartial0(com.qifly.core.protocol.data.RpcBody result) {
+    private void buildPartial0(com.qifly.core.protocol.data.protobuf.RpcBody result) {
       int from_bitField0_ = bitField0_;
       if (((from_bitField0_ & 0x00000001) != 0)) {
         result.rpcId_ = rpcId_;
@@ -405,16 +405,16 @@ private static final long serialVersionUID = 0L;
 
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof com.qifly.core.protocol.data.RpcBody) {
-        return mergeFrom((com.qifly.core.protocol.data.RpcBody)other);
+      if (other instanceof com.qifly.core.protocol.data.protobuf.RpcBody) {
+        return mergeFrom((com.qifly.core.protocol.data.protobuf.RpcBody)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(com.qifly.core.protocol.data.RpcBody other) {
-      if (other == com.qifly.core.protocol.data.RpcBody.getDefaultInstance()) return this;
+    public Builder mergeFrom(com.qifly.core.protocol.data.protobuf.RpcBody other) {
+      if (other == com.qifly.core.protocol.data.protobuf.RpcBody.getDefaultInstance()) return this;
       if (other.getRpcId() != 0) {
         setRpcId(other.getRpcId());
       }
@@ -721,9 +721,9 @@ private static final long serialVersionUID = 0L;
      * @return The statusCode.
      */
     @java.lang.Override
-    public com.qifly.core.protocol.data.RpcStatusCode getStatusCode() {
-      com.qifly.core.protocol.data.RpcStatusCode result = com.qifly.core.protocol.data.RpcStatusCode.forNumber(statusCode_);
-      return result == null ? com.qifly.core.protocol.data.RpcStatusCode.UNRECOGNIZED : result;
+    public com.qifly.core.protocol.data.protobuf.RpcStatusCode getStatusCode() {
+      com.qifly.core.protocol.data.protobuf.RpcStatusCode result = com.qifly.core.protocol.data.protobuf.RpcStatusCode.forNumber(statusCode_);
+      return result == null ? com.qifly.core.protocol.data.protobuf.RpcStatusCode.UNRECOGNIZED : result;
     }
     /**
      * <pre>
@@ -734,7 +734,7 @@ private static final long serialVersionUID = 0L;
      * @param value The statusCode to set.
      * @return This builder for chaining.
      */
-    public Builder setStatusCode(com.qifly.core.protocol.data.RpcStatusCode value) {
+    public Builder setStatusCode(com.qifly.core.protocol.data.protobuf.RpcStatusCode value) {
       if (value == null) { throw new NullPointerException(); }
       bitField0_ |= 0x00000004;
       statusCode_ = value.getNumber();
@@ -760,12 +760,12 @@ private static final long serialVersionUID = 0L;
   }
 
   // @@protoc_insertion_point(class_scope:RpcBody)
-  private static final com.qifly.core.protocol.data.RpcBody DEFAULT_INSTANCE;
+  private static final com.qifly.core.protocol.data.protobuf.RpcBody DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new com.qifly.core.protocol.data.RpcBody();
+    DEFAULT_INSTANCE = new com.qifly.core.protocol.data.protobuf.RpcBody();
   }
 
-  public static com.qifly.core.protocol.data.RpcBody getDefaultInstance() {
+  public static com.qifly.core.protocol.data.protobuf.RpcBody getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
@@ -801,7 +801,7 @@ private static final long serialVersionUID = 0L;
   }
 
   @java.lang.Override
-  public com.qifly.core.protocol.data.RpcBody getDefaultInstanceForType() {
+  public com.qifly.core.protocol.data.protobuf.RpcBody getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 
