@@ -129,13 +129,14 @@ public class ConsulRegistry implements Registry {
                     List<String> endpoints = innerHealthService(resp);
                     listener.onChange(endpoints);
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 logger.error("{} subscribe consul GET {} error", serviceName, url, e);
                 try {
                     Thread.sleep(1000);
                 } catch (Exception ignored) {
 
                 }
+            } catch (InterruptedException ignored) {
             }
         }
     }

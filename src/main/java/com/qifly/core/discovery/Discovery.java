@@ -6,6 +6,8 @@ public interface Discovery {
 
     void start();
 
+    void close();
+
     void register();
 
     void deregister();

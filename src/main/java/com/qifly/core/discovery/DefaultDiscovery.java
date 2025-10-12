@@ -2,6 +2,7 @@ package com.qifly.core.discovery;
 
 import com.qifly.core.discovery.registry.Registry;
 import com.qifly.core.exception.RegistryException;
+import com.qifly.core.executors.RpcThreadPoolExecutors;
 import com.qifly.core.retry.RetryExecutor;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;
@@ -13,8 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * 计划 快照缓存+过期返回并刷新+定时后台刷新
@@ -35,9 +34,6 @@ public class DefaultDiscovery implements Discovery {
      */
     private final ConcurrentMap<String, List<String>> endpointMap = new ConcurrentHashMap<>();
 
-    // TODO 统一线程管理
-    private final ExecutorService asyncExecutor = Executors.newCachedThreadPool();
-
     private final TransportClient client;
 
     public DefaultDiscovery(Registry registry, Provider provider, List<Consumer> consumers, TransportClient client) {
@@ -49,23 +45,22 @@ public class DefaultDiscovery implements Discovery {
 
     @Override
     public void start() {
-        register();
         if (consumers != null && !consumers.isEmpty()) {
             for (Consumer consumer : consumers) {
                 if (consumer.getEndpoints() != null && !consumer.getEndpoints().isEmpty()) {
                     notifyServiceChange(consumer.getServiceName(), consumer.getEndpoints());
                 }
                 else {
+                    initServiceEndpoint(consumer.getServiceName());
                     subscribe(consumer.getServiceName());
-                    // 首轮更新必须完成
-                    while (endpointMap.get(consumer.getServiceName()) == null) ;
                 }
             }
         }
-        // TODO 等待启动时connect完成后再结束
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ignored) {}
+    }
+
+    @Override
+    public void close() {
+        RpcThreadPoolExecutors.shutdownDiscoveryExecutor();
     }
 
     @Override
@@ -112,6 +107,21 @@ public class DefaultDiscovery implements Discovery {
         return endpoints;
     }
 
+    private void initServiceEndpoint(String serviceName) {
+        try {
+            List<String> endpoints = registry.discover(serviceName);
+            endpointMap.put(serviceName, endpoints);
+            if (client != null) {
+                // 上线节点
+                for (String endpoint : endpoints) {
+                    client.connectSync(endpoint);
+                }
+            }
+        } catch (RegistryException ignored) {
+
+        }
+    }
+
     private void notifyServiceChange(String serviceName, List<String> endpoints) {
         List<String> oldEndpoints = endpointMap.getOrDefault(serviceName, Collections.emptyList());
         endpointMap.put(serviceName, endpoints);
@@ -132,7 +142,7 @@ public class DefaultDiscovery implements Discovery {
     }
 
     private void subscribe(String serviceName) {
-        asyncExecutor.submit(() -> {
+        RpcThreadPoolExecutors.getDiscoveryExecutor().submit(() -> {
             registry.subscribe(serviceName, endpoints -> {
                 logger.info("subscribe service change to {}", endpoints);
                 notifyServiceChange(serviceName, endpoints);

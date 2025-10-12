@@ -1,15 +1,19 @@
 package com.qifly.core.executors;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.*;
 
 public class RpcThreadPoolExecutors {
+
+    private static final Logger logger = LoggerFactory.getLogger(RpcThreadPoolExecutors.class);
 
     private static final ThreadPoolExecutor serverExecutor;
 
     private static final ScheduledThreadPoolExecutor retryExecutor;
+
+    private static final ExecutorService discoveryExecutor = Executors.newCachedThreadPool();;
 
     static  {
         serverExecutor = new ThreadPoolExecutor(
@@ -31,7 +35,29 @@ public class RpcThreadPoolExecutors {
         return serverExecutor;
     }
 
+    public static void shutdownServerExecutor() {
+        serverExecutor.shutdown();
+        try {
+            if (!serverExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+                serverExecutor.shutdownNow();
+                if (!serverExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    logger.warn("server executor did not terminate");
+                }
+            }
+        } catch (InterruptedException ignored) {
+
+        }
+    }
+
     public static ScheduledThreadPoolExecutor getRetryExecutor() {
         return retryExecutor;
+    }
+
+    public static ExecutorService getDiscoveryExecutor() {
+        return discoveryExecutor;
+    }
+
+    public static void shutdownDiscoveryExecutor() {
+        discoveryExecutor.shutdownNow();
     }
 }

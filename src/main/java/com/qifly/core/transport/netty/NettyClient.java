@@ -21,6 +21,8 @@ import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -58,6 +60,15 @@ public class NettyClient implements TransportClient {
     @Override
     public void connect(String host, int port) {
         doConnect(host, port, 0);
+    }
+
+    @Override
+    public boolean connectSync(String host, int port) {
+        ChannelFuture future = bootstrap.connect(host, port).syncUninterruptibly();
+        if (future.isSuccess()) {
+            notifyConnect(future, host, port);
+        }
+        return future.isSuccess();
     }
 
     private void doConnect(String host, int port, int retryCount) {
@@ -121,6 +132,9 @@ public class NettyClient implements TransportClient {
         CompletableFuture<RpcFrame> future = new CompletableFuture<>();
         futureMap.put(id, future);
         Channel ch = getChannel(endpoint);
+        if (ch == null) {
+            throw new RpcClientException("netty client no connect on " + endpoint);
+        }
         ch.eventLoop().schedule(() -> {
             CompletableFuture<RpcFrame> removed = futureMap.remove(id);
             if (removed != null && !removed.isDone()) {
@@ -133,6 +147,13 @@ public class NettyClient implements TransportClient {
 
     @Override
     public void close() {
-        workGroup.shutdownGracefully();
+        try {
+            List<Channel> snapshot = new ArrayList<>(channelMap.values());
+            for (Channel ch : snapshot) {
+                ch.close().awaitUninterruptibly();
+            }
+        } finally {
+            workGroup.shutdownGracefully();
+        }
     }
 }

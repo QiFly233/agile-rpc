@@ -35,11 +35,17 @@ public class NoRegistryDiscovery implements Discovery {
                 continue;
             }
             endpointMap.put(consumer.getServiceName(), endpoints);
-            for (String endpoint : endpoints) {
-                client.connect(endpoint);
-                while (client.getChannel(endpoint) == null); // TODO 修改为重连机制
+            if (client != null) {
+                for (String endpoint : endpoints) {
+                    while(!client.connectSync(endpoint));
+                }
             }
         }
+    }
+
+    @Override
+    public void close() {
+
     }
 
     @Override

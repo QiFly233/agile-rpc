@@ -18,6 +18,15 @@ public interface TransportClient extends Closeable {
         connect(host, port);
     }
 
+    boolean connectSync(String host, int port);
+
+    default boolean connectSync(String endpoint) {
+        String[] ss = endpoint.split(":");
+        String host = ss[0];
+        int port = Integer.parseInt(ss[1]);
+        return connectSync(host, port);
+    }
+
     default void disconnect(String host, int port) {
         disconnect(host + ":" + port);
     }

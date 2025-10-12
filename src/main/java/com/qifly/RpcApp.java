@@ -125,6 +125,10 @@ public class RpcApp implements Closeable {
     }
 
     public void start() {
+        if (discovery != null) {
+            discovery.start();
+        }
+
         if (provider != null) {
             try {
                 server.start();
@@ -134,12 +138,24 @@ public class RpcApp implements Closeable {
         }
 
         if (discovery != null) {
-            discovery.start();
+            discovery.register();
         }
+
     }
 
     @Override
     public void close() throws IOException {
-        // TODO
+        if (discovery != null) {
+            discovery.close();
+        }
+        if (server != null) {
+            server.close();
+        }
+        if (discovery != null) {
+            discovery.close();
+        }
+        if (client != null) {
+            client.close();
+        }
     }
 }

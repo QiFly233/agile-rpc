@@ -1,6 +1,7 @@
 package com.qifly.core.transport.netty;
 
 import com.qifly.core.exception.TransportException;
+import com.qifly.core.executors.RpcThreadPoolExecutors;
 import com.qifly.core.protocol.frame.FrameCodec;
 import com.qifly.core.service.Provider;
 import com.qifly.core.transport.TransportServer;
@@ -9,6 +10,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -16,6 +19,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +34,7 @@ public class NettyServer implements TransportServer {
     private final ServerBootstrap bootstrap;
     private volatile Channel serverChannel;
     private final int maxFrameLength = 1024 * 1024 + 16;
+    private final ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     public NettyServer(int port, Provider provider) {
         this.port = port;
@@ -39,6 +44,7 @@ public class NettyServer implements TransportServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
+                        channelGroup.add(ch);
                         ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
                         ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(maxFrameLength, 4, 4, 8, 0));
                         ch.pipeline().addLast(new IdleStateHandler(0, 0, 180));
@@ -64,6 +70,15 @@ public class NettyServer implements TransportServer {
             if (serverChannel != null) {
                 serverChannel.close().syncUninterruptibly();
             }
+
+            for (Channel channel : channelGroup) {
+                channel.config().setAutoRead(false);
+            }
+
+            RpcThreadPoolExecutors.shutdownServerExecutor();
+
+            channelGroup.close().awaitUninterruptibly();
+
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
