@@ -28,10 +28,13 @@ public class ConsulRegistry implements Registry {
     /**
      * consul地址
      */
-    private final String baseUrl;
+    private String baseUrl;
     private final String serviceRegisterApi = "/v1/agent/service/register";
     private final String serviceDeregisterApi = "/agent/service/deregister/";
     private final String healthServiceApi = "/v1/health/service/";
+
+    public ConsulRegistry() {
+    }
 
     public ConsulRegistry(String baseUrl) {
         this.baseUrl = baseUrl;

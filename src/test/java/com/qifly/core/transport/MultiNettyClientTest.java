@@ -35,7 +35,7 @@ public class MultiNettyClientTest {
     public static void init() throws InterruptedException {
         RpcBootstrap serverBootstrap = new RpcBootstrap()
                 .addProvider(UserService.class, new MockUserService(), 8081)
-                .addRegister("http://127.0.0.1:8500", 1);
+                .addRegister("http://127.0.0.1:8500", "ConsulRegistry");
         serverApp = serverBootstrap.build();
         serverApp.start();
 
@@ -44,7 +44,7 @@ public class MultiNettyClientTest {
         for (int i = 0; i < CLIENT_COUNT; i++) {
             RpcBootstrap clientBootstrap = new RpcBootstrap()
                     .addConsumer(UserService.class)
-                    .addRegister("http://127.0.0.1:8500", 1);
+                    .addRegister("http://127.0.0.1:8500", "ConsulRegistry");
             RpcApp clientApp = clientBootstrap.build();
             clientApp.start();
             clientApps.add(clientApp);

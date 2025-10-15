@@ -37,7 +37,7 @@ public class NettyTest {
     public static void init() throws InterruptedException {
         RpcBootstrap serverBootstrap = new RpcBootstrap()
                 .addProvider(UserService.class, new MockUserService(), 8080)
-                .addRegister("http://127.0.0.1:8500", 1);
+                .addRegister("http://127.0.0.1:8500", "ConsulRegistry");
         serverApp = serverBootstrap.build();
         serverApp.start();
 
@@ -46,7 +46,7 @@ public class NettyTest {
 
         RpcBootstrap clientBootstrap = new RpcBootstrap()
                 .addConsumer(UserService.class)
-                .addRegister("http://127.0.0.1:8500", 1);
+                .addRegister("http://127.0.0.1:8500", "ConsulRegistry");
         clientApp = clientBootstrap.build();
         clientApp.start();
 

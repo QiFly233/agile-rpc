@@ -13,18 +13,18 @@ public class RegistryConfig {
     /**
      * 注册中心类型， 1=consul
      */
-    private final int type;
+    private final String name;
 
-    public RegistryConfig(String baseUrl, int type) {
+    public RegistryConfig(String baseUrl, String name) {
         this.baseUrl = baseUrl;
-        this.type = type;
+        this.name = name;
     }
 
     public String getBaseUrl() {
         return baseUrl;
     }
 
-    public int getType() {
-        return type;
+    public String getName() {
+        return name;
     }
 }

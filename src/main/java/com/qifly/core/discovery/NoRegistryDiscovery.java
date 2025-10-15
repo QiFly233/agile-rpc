@@ -13,11 +13,14 @@ public class NoRegistryDiscovery implements Discovery {
 
     Logger logger = LoggerFactory.getLogger(NoRegistryDiscovery.class);
 
-    private final List<Consumer> consumers;
+    private List<Consumer> consumers;
 
-    private final TransportClient client;
+    private TransportClient client;
 
-    private final ConcurrentMap<String, List<String>> endpointMap = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, List<String>> endpointMap = new ConcurrentHashMap<>();
+
+    public NoRegistryDiscovery() {
+    }
 
     public NoRegistryDiscovery(List<Consumer> consumers, TransportClient client) {
         this.consumers = consumers;

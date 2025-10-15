@@ -22,11 +22,11 @@ public class DefaultDiscovery implements Discovery {
 
     Logger logger = LoggerFactory.getLogger(DefaultDiscovery.class);
 
-    private final Registry registry;
+    private Registry registry;
 
-    private final Provider provider;
+    private Provider provider;
 
-    private final List<Consumer> consumers;
+    private List<Consumer> consumers;
 
     /**
      * 仅缓存注册中心的地址
@@ -34,7 +34,10 @@ public class DefaultDiscovery implements Discovery {
      */
     private final ConcurrentMap<String, List<String>> endpointMap = new ConcurrentHashMap<>();
 
-    private final TransportClient client;
+    private TransportClient client;
+
+    public DefaultDiscovery() {
+    }
 
     public DefaultDiscovery(Registry registry, Provider provider, List<Consumer> consumers, TransportClient client) {
         this.registry = registry;

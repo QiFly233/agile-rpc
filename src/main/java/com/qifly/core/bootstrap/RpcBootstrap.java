@@ -5,8 +5,10 @@ import com.qifly.core.bootstrap.config.ConsumerConfig;
 import com.qifly.core.bootstrap.config.ProviderConfig;
 import com.qifly.core.bootstrap.config.RegistryConfig;
 import com.qifly.core.discovery.DefaultDiscovery;
+import com.qifly.core.discovery.Discovery;
 import com.qifly.core.discovery.NoRegistryDiscovery;
-import com.qifly.core.discovery.registry.ConsulRegistry;
+import com.qifly.core.discovery.registry.Registry;
+import com.qifly.core.loader.SpiLoader;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;
 import com.qifly.core.transport.netty.NettyClient;
@@ -58,8 +60,8 @@ public class RpcBootstrap {
         return addConsumer(serviceInterface, null, protocolType);
     }
 
-    public RpcBootstrap addRegister(String baseUrl, int type) {
-        registryConfig = new RegistryConfig(baseUrl, type);
+    public RpcBootstrap addRegister(String baseUrl, String name) {
+        registryConfig = new RegistryConfig(baseUrl, name);
         return this;
     }
 
@@ -86,9 +88,10 @@ public class RpcBootstrap {
 
 
         if (registryConfig != null) {
-            if (registryConfig.getType() == 1) {
-                rpcApp.setDiscovery(new DefaultDiscovery(new ConsulRegistry(registryConfig.getBaseUrl()), rpcApp.getProvider(), rpcApp.getConsumers(), rpcApp.getClient()));
-            }
+            SpiLoader<Registry> loader = new SpiLoader<>(Registry.class);
+            Registry registry = loader.get(registryConfig.getName(), registryConfig.getBaseUrl());
+            Discovery defaultDiscovery = new DefaultDiscovery(registry, rpcApp.getProvider(), rpcApp.getConsumers(), rpcApp.getClient());
+            rpcApp.setDiscovery(defaultDiscovery);
         } else {
             rpcApp.setDiscovery(new NoRegistryDiscovery(rpcApp.getConsumers(), rpcApp.getClient()));
         }

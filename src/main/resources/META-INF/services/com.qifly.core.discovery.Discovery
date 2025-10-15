@@ -1,0 +1,2 @@
+com.qifly.core.discovery.DefaultDiscovery
+com.qifly.core.discovery.NoRegistryDiscovery
