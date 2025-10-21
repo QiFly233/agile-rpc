@@ -41,12 +41,19 @@ public class Provider {
      */
     private final int protocolType;
 
-    public Provider(Class<?> itf, Object impl, int port, int protocolType) {
+    /**
+     * 注册中心Id
+     */
+    private final String registry;
+
+
+    public Provider(Class<?> itf, Object impl, int port, int protocolType, String registry) {
         this.itf = itf;
         this.impl = impl;
         this.port = port;
         serviceName = itf.getSimpleName();
         this.protocolType = protocolType;
+        this.registry = registry;
         methodMap = getMethods();
     }
 
@@ -89,5 +96,9 @@ public class Provider {
 
     public int getProtocolType() {
         return protocolType;
+    }
+
+    public String getRegistry() {
+        return registry;
     }
 }

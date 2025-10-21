@@ -36,12 +36,8 @@ public class ConsulRegistry implements Registry {
     public ConsulRegistry() {
     }
 
-    public ConsulRegistry(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
     @Override
-    public void register(Provider provider) throws RegistryException {
+    public void register(String baseUrl, Provider provider) throws RegistryException {
         String localIp = IpUtil.getLocalIp();
         int port = provider.getPort();
         String serviceId = getServiceId(provider);
@@ -79,7 +75,7 @@ public class ConsulRegistry implements Registry {
     }
 
     @Override
-    public void deregister(Provider provider) throws RegistryException {
+    public void deregister(String baseUrl, Provider provider) throws RegistryException {
         String serviceId = getServiceId(provider);
         String url = baseUrl + serviceDeregisterApi + serviceId;
         try {
@@ -100,7 +96,7 @@ public class ConsulRegistry implements Registry {
     }
 
     @Override
-    public List<String> discover(String serviceName) throws RegistryException {
+    public List<String> discover(String baseUrl, String serviceName) throws RegistryException {
         String url = baseUrl + healthServiceApi + serviceName + "?passing=true";
         try {
             HttpResponse<String> resp = HttpClientUtil.get(url, null, Duration.ofSeconds(3));
@@ -116,7 +112,7 @@ public class ConsulRegistry implements Registry {
     }
 
     @Override
-    public void subscribe(String serviceName, SubscribeListener listener) {
+    public void subscribe(String baseUrl, String serviceName, SubscribeListener listener) {
         long lastIndex = 1L;
         while (true) {
             String url = baseUrl + healthServiceApi + serviceName + "?passing=true&wait=60s&index=" + lastIndex;

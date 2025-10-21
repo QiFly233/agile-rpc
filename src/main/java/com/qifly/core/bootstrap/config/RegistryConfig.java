@@ -6,25 +6,41 @@ package com.qifly.core.bootstrap.config;
 public class RegistryConfig {
 
     /**
-     * 地址
+     * 唯一键
      */
-    private final String baseUrl;
+    private String id;
 
     /**
-     * 注册中心类型， 1=consul
+     * 地址
      */
-    private final String name;
+    private String baseUrl;
 
-    public RegistryConfig(String baseUrl, String name) {
-        this.baseUrl = baseUrl;
-        this.name = name;
+    /**
+     * 注册中心类型
+     */
+    private String registry;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getRegistry() {
+        return registry;
+    }
+
+    public void setRegistry(String registry) {
+        this.registry = registry;
     }
 
     public String getBaseUrl() {
         return baseUrl;
     }
 
-    public String getName() {
-        return name;
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 }

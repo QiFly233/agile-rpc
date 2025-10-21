@@ -42,12 +42,31 @@ public class Consumer {
      */
     private final int protocolType;
 
-    public Consumer(Class<?> itf, List<String> endpoints, int protocolType) {
+    /**
+     * 注册中心Id
+     */
+    private final String registry;
+
+    /**
+     * 路由
+     */
+    private final String router;
+
+    /**
+     * 均衡负载
+     */
+    private final String loadBalance;
+
+
+    public Consumer(Class<?> itf, List<String> endpoints, int protocolType, String registry, String router, String loadBalance) {
         this.itf = itf;
         itfName = itf.getName();
         serviceName = itf.getSimpleName();
         this.endpoints = endpoints;
         this.protocolType = protocolType;
+        this.registry = registry;
+        this.router = router;
+        this.loadBalance = loadBalance;
         methodMap = getMethods();
     }
 
@@ -98,5 +117,17 @@ public class Consumer {
 
     public int getProtocolType() {
         return protocolType;
+    }
+
+    public String getLoadBalance() {
+        return loadBalance;
+    }
+
+    public String getRouter() {
+        return router;
+    }
+
+    public String getRegistry() {
+        return registry;
     }
 }

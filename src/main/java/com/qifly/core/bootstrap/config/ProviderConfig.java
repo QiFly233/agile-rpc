@@ -8,43 +8,68 @@ public class ProviderConfig {
     /**
      * 服务接口
      */
-    private final Class<?> serviceInterface;
+    private Class<?> serviceInterface;
 
     /**
      * 服务具体实现
      */
-    private final Object serviceImpl;
+    private Object serviceImpl;
 
     /**
      * 端口
      */
-    private final int port;
+    private int port;
 
     /**
      * 序列化协议类型
      */
-    private final int protocolType;
+    private int protocolType;
 
-    public ProviderConfig(Class<?> serviceInterface, Object serviceImpl, int port, int protocolType) {
-        this.serviceInterface = serviceInterface;
-        this.serviceImpl = serviceImpl;
-        this.port = port;
-        this.protocolType = protocolType;
+    /**
+     * 注册中心Id
+     */
+    private String registry;
+
+    public ProviderConfig() {
     }
 
     public Class<?> getServiceInterface() {
         return serviceInterface;
     }
 
+    public void setServiceInterface(Class<?> serviceInterface) {
+        this.serviceInterface = serviceInterface;
+    }
+
     public Object getServiceImpl() {
         return serviceImpl;
+    }
+
+    public void setServiceImpl(Object serviceImpl) {
+        this.serviceImpl = serviceImpl;
     }
 
     public int getPort() {
         return port;
     }
 
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     public int getProtocolType() {
         return protocolType;
+    }
+
+    public void setProtocolType(int protocolType) {
+        this.protocolType = protocolType;
+    }
+
+    public String getRegistry() {
+        return registry;
+    }
+
+    public void setRegistry(String registry) {
+        this.registry = registry;
     }
 }

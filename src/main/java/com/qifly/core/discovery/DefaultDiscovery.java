@@ -1,6 +1,7 @@
 package com.qifly.core.discovery;
 
 import com.qifly.core.discovery.registry.Registry;
+import com.qifly.core.discovery.registry.RegistryEntry;
 import com.qifly.core.exception.RegistryException;
 import com.qifly.core.executors.RpcThreadPoolExecutors;
 import com.qifly.core.retry.RetryExecutor;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -22,11 +24,11 @@ public class DefaultDiscovery implements Discovery {
 
     Logger logger = LoggerFactory.getLogger(DefaultDiscovery.class);
 
-    private Registry registry;
-
     private Provider provider;
 
     private List<Consumer> consumers;
+
+    private final Map<String, RegistryEntry> registryEntryMap;
 
     /**
      * 仅缓存注册中心的地址
@@ -36,13 +38,10 @@ public class DefaultDiscovery implements Discovery {
 
     private TransportClient client;
 
-    public DefaultDiscovery() {
-    }
-
-    public DefaultDiscovery(Registry registry, Provider provider, List<Consumer> consumers, TransportClient client) {
-        this.registry = registry;
+    public DefaultDiscovery(Provider provider, List<Consumer> consumers, Map<String, RegistryEntry> registryEntryMap, TransportClient client) {
         this.provider = provider;
         this.consumers = consumers;
+        this.registryEntryMap = registryEntryMap;
         this.client = client;
     }
 
@@ -54,8 +53,8 @@ public class DefaultDiscovery implements Discovery {
                     notifyServiceChange(consumer.getServiceName(), consumer.getEndpoints());
                 }
                 else {
-                    initServiceEndpoint(consumer.getServiceName());
-                    subscribe(consumer.getServiceName());
+                    initServiceEndpoint(consumer);
+                    subscribe(consumer);
                 }
             }
         }
@@ -71,10 +70,13 @@ public class DefaultDiscovery implements Discovery {
         if (provider == null) {
             return;
         }
+        RegistryEntry registryEntry = registryEntryMap.get(provider.getRegistry());
+        Registry registry = registryEntry.getRegistry();
+        String baseUrl = registryEntry.getBaseUrl();
         // 注册服务必须成功
         while (true) {
             try {
-                registry.register(provider);
+                registry.register(baseUrl, provider);
                 logger.info("register service:{} success", provider.getServiceName());
                 return;
             } catch (RegistryException e) {
@@ -93,11 +95,14 @@ public class DefaultDiscovery implements Discovery {
         if (provider == null) {
             return;
         }
+        RegistryEntry registryEntry = registryEntryMap.get(provider.getRegistry());
+        Registry registry = registryEntry.getRegistry();
+        String baseUrl = registryEntry.getBaseUrl();
         try {
-            registry.deregister(provider);
+            registry.deregister(baseUrl, provider);
             logger.info("deregister service:{} success", provider.getServiceName());
         } catch (Exception e) {
-            RetryExecutor.executeAsync("registry-deregister", () -> registry.deregister(provider));
+            RetryExecutor.executeAsync("registry-deregister", () -> registry.deregister(baseUrl, provider));
         }
     }
 
@@ -110,9 +115,13 @@ public class DefaultDiscovery implements Discovery {
         return endpoints;
     }
 
-    private void initServiceEndpoint(String serviceName) {
+    private void initServiceEndpoint(Consumer consumer) {
         try {
-            List<String> endpoints = registry.discover(serviceName);
+            RegistryEntry registryEntry = registryEntryMap.get(consumer.getRegistry());
+            Registry registry = registryEntry.getRegistry();
+            String baseUrl = registryEntry.getBaseUrl();
+            String serviceName = consumer.getServiceName();
+            List<String> endpoints = registry.discover(baseUrl, serviceName);
             endpointMap.put(serviceName, endpoints);
             if (client != null) {
                 // 上线节点
@@ -144,9 +153,13 @@ public class DefaultDiscovery implements Discovery {
         }
     }
 
-    private void subscribe(String serviceName) {
+    private void subscribe(Consumer consumer) {
+        RegistryEntry registryEntry = registryEntryMap.get(consumer.getRegistry());
+        Registry registry = registryEntry.getRegistry();
+        String baseUrl = registryEntry.getBaseUrl();
+        String serviceName = consumer.getServiceName();
         RpcThreadPoolExecutors.getDiscoveryExecutor().submit(() -> {
-            registry.subscribe(serviceName, endpoints -> {
+            registry.subscribe(baseUrl, serviceName, endpoints -> {
                 logger.info("subscribe service change to {}", endpoints);
                 notifyServiceChange(serviceName, endpoints);
             });

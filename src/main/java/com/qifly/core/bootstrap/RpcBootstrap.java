@@ -8,13 +8,15 @@ import com.qifly.core.discovery.DefaultDiscovery;
 import com.qifly.core.discovery.Discovery;
 import com.qifly.core.discovery.NoRegistryDiscovery;
 import com.qifly.core.discovery.registry.Registry;
-import com.qifly.core.loader.SpiLoader;
+import com.qifly.core.discovery.registry.RegistryEntry;
+import com.qifly.core.loader.SpiHelper;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;
 import com.qifly.core.transport.netty.NettyClient;
 import com.qifly.core.transport.netty.NettyServer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class RpcBootstrap {
@@ -32,44 +34,37 @@ public class RpcBootstrap {
     /**
      * 注册中心配置
      */
-    RegistryConfig registryConfig;
+    List<RegistryConfig> registryConfigs = new ArrayList<>();
 
-    public RpcBootstrap addProvider(Class<?> serviceInterface, Object serviceImpl, int port) {
-        return addProvider(serviceInterface, serviceImpl, port, 1);
+    public ConsumerConfigBuilder consumer() {
+        return new ConsumerConfigBuilder(this);
     }
 
-    public RpcBootstrap addProvider(Class<?> serviceInterface, Object serviceImpl, int port, int protocolType) {
-        providerConfig = new ProviderConfig(serviceInterface, serviceImpl, port, protocolType);
-        return this;
+    public ProviderConfigBuilder provider() {
+        return new ProviderConfigBuilder(this);
     }
 
-    public RpcBootstrap addConsumer(Class<?> serviceInterface, List<String> endpoints) {
-        return addConsumer(serviceInterface, endpoints, 1);
+    public RegistryConfigBuilder registry() {
+        return new RegistryConfigBuilder(this);
     }
 
-    public RpcBootstrap addConsumer(Class<?> serviceInterface, List<String> endpoints, int protocolType) {
-        consumerConfigs.add(new ConsumerConfig(serviceInterface, endpoints, protocolType));
-        return this;
+    private void setProviderConfig(ProviderConfig providerConfig) {
+        this.providerConfig = providerConfig;
     }
 
-    public RpcBootstrap addConsumer(Class<?> serviceInterface) {
-        return addConsumer(serviceInterface, 1);
+    private void addConsumerConfig(ConsumerConfig consumerConfig) {
+        this.consumerConfigs.add(consumerConfig);
     }
 
-    public RpcBootstrap addConsumer(Class<?> serviceInterface, int protocolType) {
-        return addConsumer(serviceInterface, null, protocolType);
-    }
-
-    public RpcBootstrap addRegister(String baseUrl, String name) {
-        registryConfig = new RegistryConfig(baseUrl, name);
-        return this;
+    private void addRegistryConfig(RegistryConfig registryConfig) {
+        registryConfigs.add(registryConfig);
     }
 
     public RpcApp build() {
         RpcApp rpcApp = new RpcApp();
 
         if (providerConfig != null) {
-            Provider provider = new Provider(providerConfig.getServiceInterface(), providerConfig.getServiceImpl(), providerConfig.getPort(), providerConfig.getProtocolType());
+            Provider provider = new Provider(providerConfig.getServiceInterface(), providerConfig.getServiceImpl(), providerConfig.getPort(), providerConfig.getProtocolType(), providerConfig.getRegistry());
             rpcApp.setProvider(provider);
             NettyServer nettyServer = new NettyServer(provider.getPort(), provider);
             rpcApp.setServer(nettyServer);
@@ -78,7 +73,7 @@ public class RpcBootstrap {
         if (consumerConfigs != null && !consumerConfigs.isEmpty()) {
             List<Consumer> consumers = new ArrayList<>();
             for (ConsumerConfig c : consumerConfigs) {
-                Consumer consumer = new Consumer(c.getServiceInterface(), c.getEndpoints(), c.getProtocolType());
+                Consumer consumer = new Consumer(c.getServiceInterface(), c.getEndpoints(), c.getProtocolType(), c.getRegistry(), c.getRouter(), c.getLoadBalance());
                 consumers.add(consumer);
             }
             rpcApp.setConsumers(consumers);
@@ -87,10 +82,14 @@ public class RpcBootstrap {
         }
 
 
-        if (registryConfig != null) {
-            SpiLoader<Registry> loader = new SpiLoader<>(Registry.class);
-            Registry registry = loader.get(registryConfig.getName(), registryConfig.getBaseUrl());
-            Discovery defaultDiscovery = new DefaultDiscovery(registry, rpcApp.getProvider(), rpcApp.getConsumers(), rpcApp.getClient());
+        if (registryConfigs != null && !registryConfigs.isEmpty()) {
+            HashMap<String, RegistryEntry> registryMap = new HashMap<>();
+            for (RegistryConfig c : registryConfigs) {
+                Registry registry = SpiHelper.getImpl(Registry.class, c.getRegistry());
+                RegistryEntry registryEntry = new RegistryEntry(c.getId(), c.getBaseUrl(), registry);
+                registryMap.put(c.getId(), registryEntry);
+            }
+            Discovery defaultDiscovery = new DefaultDiscovery(rpcApp.getProvider(), rpcApp.getConsumers(), registryMap, rpcApp.getClient());
             rpcApp.setDiscovery(defaultDiscovery);
         } else {
             rpcApp.setDiscovery(new NoRegistryDiscovery(rpcApp.getConsumers(), rpcApp.getClient()));
@@ -100,4 +99,111 @@ public class RpcBootstrap {
         return rpcApp;
     }
 
+    public static class ProviderConfigBuilder {
+        private final RpcBootstrap rpcBootstrap;
+        private final ProviderConfig config = new ProviderConfig();
+
+        public ProviderConfigBuilder(RpcBootstrap rpcBootstrap) {
+            this.rpcBootstrap = rpcBootstrap;
+        }
+
+        public ProviderConfigBuilder service(Class<?> serviceInterface, Object serviceImpl) {
+            config.setServiceInterface(serviceInterface);
+            config.setServiceImpl(serviceImpl);
+            return this;
+        }
+
+        public ProviderConfigBuilder port(int port) {
+            config.setPort(port);
+            return this;
+        }
+
+        public ProviderConfigBuilder protocolType(int protocolType) {
+            config.setProtocolType(protocolType);
+            return this;
+        }
+
+        public ProviderConfigBuilder registry(String id) {
+            config.setRegistry(id);
+            return this;
+        }
+
+        public RpcBootstrap and() {
+            rpcBootstrap.setProviderConfig(config);
+            return rpcBootstrap;
+        }
+    }
+
+    public static class ConsumerConfigBuilder {
+        private final RpcBootstrap rpcBootstrap;
+        private final ConsumerConfig config = new ConsumerConfig();
+
+        public ConsumerConfigBuilder(RpcBootstrap rpcBootstrap) {
+            this.rpcBootstrap = rpcBootstrap;
+        }
+
+        public ConsumerConfigBuilder service(Class<?> serviceInterface) {
+            config.setServiceInterface(serviceInterface);
+            return this;
+        }
+
+        public ConsumerConfigBuilder addEndpoint(String endpoint) {
+            config.addEndpoint(endpoint);
+            return this;
+        }
+
+        public ConsumerConfigBuilder protocolType(int protocolType) {
+            config.setProtocolType(protocolType);
+            return this;
+        }
+
+        public ConsumerConfigBuilder router(String router) {
+            config.setRouter(router);
+            return this;
+        }
+
+        public ConsumerConfigBuilder loadBalance(String loadBalance) {
+            config.setLoadBalance(loadBalance);
+            return this;
+        }
+
+        public ConsumerConfigBuilder registry(String id) {
+            config.setRegistry(id);
+            return this;
+        }
+
+        public RpcBootstrap and() {
+            rpcBootstrap.addConsumerConfig(config);
+            return rpcBootstrap;
+        }
+    }
+
+    public static class RegistryConfigBuilder {
+        private final RpcBootstrap rpcBootstrap;
+        private final RegistryConfig config = new RegistryConfig();
+
+        public RegistryConfigBuilder(RpcBootstrap rpcBootstrap) {
+            this.rpcBootstrap = rpcBootstrap;
+        }
+
+        public RegistryConfigBuilder id(String id) {
+            config.setId(id);
+            return this;
+        }
+
+        public RegistryConfigBuilder baseUrl(String baseUrl) {
+            config.setBaseUrl(baseUrl);
+            return this;
+        }
+
+        public RegistryConfigBuilder registry(String registry) {
+            config.setRegistry(registry);
+            return this;
+        }
+
+        public RpcBootstrap and() {
+            rpcBootstrap.addRegistryConfig(config);
+            return rpcBootstrap;
+        }
+    }
 }

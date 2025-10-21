@@ -3,10 +3,9 @@ package com.qifly;
 import com.qifly.core.cluster.Cluster;
 import com.qifly.core.cluster.DefaultCluster;
 import com.qifly.core.cluster.loadbalance.LoadBalance;
-import com.qifly.core.cluster.loadbalance.RoundRobinLoadBalance;
-import com.qifly.core.cluster.router.DefaultRouter;
 import com.qifly.core.cluster.router.Router;
 import com.qifly.core.discovery.Discovery;
+import com.qifly.core.loader.SpiHelper;
 import com.qifly.core.service.Consumer;
 import com.qifly.core.service.Provider;
 import com.qifly.core.service.ServiceProxyFactory;
@@ -16,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,17 +105,17 @@ public class RpcApp implements Closeable {
         return client;
     }
 
-    public LoadBalance getLoadBalance() {
-        return new RoundRobinLoadBalance();
-    }
-
-    public Router getRouter() {
-        return new DefaultRouter(client);
-    }
-
     public void init() {
-        Cluster cluster = new DefaultCluster(discovery, getLoadBalance(), getRouter());
         if (consumers != null && !consumers.isEmpty()) {
+            Map<String, Router> routerMap = new HashMap<>();
+            Map<String, LoadBalance> loadBalanceMap = new HashMap<>();
+            Cluster cluster = new DefaultCluster(discovery, routerMap, loadBalanceMap);
+            for (Consumer consumer : consumers) {
+                Router router = SpiHelper.getImpl(Router.class, consumer.getRouter());
+                routerMap.put(consumer.getServiceName(), router);
+                LoadBalance loadbalance = SpiHelper.getImpl(LoadBalance.class, consumer.getLoadBalance());
+                loadBalanceMap.put(consumer.getServiceName(), loadbalance);
+            }
             for (Consumer consumer : consumers) {
                 consumerProxy.put(consumer.getItf().getSimpleName(), ServiceProxyFactory.create(consumer, client, cluster));
             }
@@ -144,7 +142,7 @@ public class RpcApp implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (discovery != null) {
             discovery.close();
         }

@@ -11,11 +11,11 @@ public interface Registry {
         void onChange(List<String> endpoints);
     }
 
-    void register(Provider provider) throws RegistryException;
+    void register(String baseUrl, Provider provider) throws RegistryException;
 
-    void deregister(Provider provider) throws RegistryException;
+    void deregister(String baseUrl, Provider provider) throws RegistryException;
 
-    List<String> discover(String serviceName) throws RegistryException;
+    List<String> discover(String baseUrl, String serviceName) throws RegistryException;
 
-    void subscribe(String serviceName, SubscribeListener listener);
+    void subscribe(String baseUrl, String serviceName, SubscribeListener listener);
 }
