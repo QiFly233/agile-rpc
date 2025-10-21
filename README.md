@@ -31,27 +31,59 @@
 - 创建与启动  
   一般的，一个服务器上启动一个应用（App），一个app可以包含一个服务提供者和多个消费者
   - 服务器A
-      ```java
-      RpcApp serverApp = new RpcBootstrap()
-             .addProvider(UserService.class, new UserServiceImpl(), 8080)
-             .addRegister("http://127.0.0.1:8500", 1)
-             .build();
-      ```
+    ```java
+    RpcApp serverApp = new RpcBootstrap()
+        .registry()
+            .id("consul")
+            .baseUrl("http://127.0.0.1:8500")
+            .registry("ConsulRegistry")
+        .and()
+        .provider()
+            .service(UserService.class, new MockUserService())
+            .port(8080)
+            .protocolType(1)
+            .registry("consul")
+        .and()
+        .build();
+    serverApp.start();
+    ```
   - 服务器B
-      ```java
-      RpcApp clientApp = new RpcBootstrap()
-             .addConsumer(UserService.class)
-             .addRegister("http://127.0.0.1:8500", 1)
-             .build();
-      ```
+    ```java
+    RpcApp clientApp = new RpcBootstrap()
+        .registry()
+            .id("consul")
+            .baseUrl("http://127.0.0.1:8500")
+            .registry("ConsulRegistry")
+        .and()
+        .consumer()
+            .service(UserService.class)
+            .protocolType(1)
+            .registry("consul")
+        .and()
+        .build();
+    clientApp.start();
+    ```
   - 组合
-      ```java
-      RpcApp app = new RpcBootstrap()
-             .addProvider(OrderService.class, new OrderServiceImpl(), 8080)
-             .addConsumer(UserService.class)
-             .addRegister("http://127.0.0.1:8500", 1)
-             .build();
-      ```
+    ```java
+    RpcApp rpcApp = new RpcBootstrap()
+        .registry()
+            .id("consul")
+            .baseUrl("http://127.0.0.1:8500")
+            .registry("ConsulRegistry")
+        .and()
+        .provider()
+            .service(UserService.class, new MockUserService())
+            .port(8080)
+            .protocolType(1)
+            .registry("consul")
+        .and()
+        .consumer()
+            .service(UserService.class)
+            .protocolType(1)
+            .registry("consul")
+        .build();
+    rpcApp.start();
+    ```
     
 - 服务调用
     ```java

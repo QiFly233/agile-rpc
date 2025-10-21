@@ -92,7 +92,7 @@ public class DefaultDiscovery implements Discovery {
 
     @Override
     public void deregister() {
-        if (provider == null) {
+        if (provider == null || !registryEntryMap.containsKey(provider.getRegistry())) {
             return;
         }
         RegistryEntry registryEntry = registryEntryMap.get(provider.getRegistry());
@@ -116,6 +116,9 @@ public class DefaultDiscovery implements Discovery {
     }
 
     private void initServiceEndpoint(Consumer consumer) {
+        if (!registryEntryMap.containsKey(consumer.getRegistry())) {
+            return;
+        }
         try {
             RegistryEntry registryEntry = registryEntryMap.get(consumer.getRegistry());
             Registry registry = registryEntry.getRegistry();
@@ -154,6 +157,9 @@ public class DefaultDiscovery implements Discovery {
     }
 
     private void subscribe(Consumer consumer) {
+        if (!registryEntryMap.containsKey(consumer.getRegistry())) {
+            return;
+        }
         RegistryEntry registryEntry = registryEntryMap.get(consumer.getRegistry());
         Registry registry = registryEntry.getRegistry();
         String baseUrl = registryEntry.getBaseUrl();

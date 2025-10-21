@@ -31,14 +31,16 @@ public class NettyTest {
     public static void init() throws InterruptedException {
         for (int i = 0; i < SERVER_COUNT; i++) {
             RpcApp serverApp = new RpcBootstrap()
-                    .provider()
-                    .service(UserService.class, new MockUserService())
-                    .port(8080 + i)
-                    .protocolType(1)
-                    .and()
                     .registry()
-                    .baseUrl(baseUrl)
-                    .registry("ConsulRegistry")
+                        .id("consul")
+                        .baseUrl(baseUrl)
+                        .registry("ConsulRegistry")
+                    .and()
+                    .provider()
+                        .service(UserService.class, new MockUserService())
+                        .port(8080 + i)
+                        .protocolType(1)
+                        .registry("consul")
                     .and()
                     .build();
             serverApp.start();
@@ -51,13 +53,15 @@ public class NettyTest {
 
         for (int i = 0; i < CLIENT_COUNT; i++) {
             RpcApp clientApp = new RpcBootstrap()
+                    .registry()
+                        .id("consul")
+                        .baseUrl(baseUrl)
+                        .registry("ConsulRegistry")
+                    .and()
                     .consumer()
                         .service(UserService.class)
                         .protocolType(1)
-                    .and()
-                        .registry()
-                        .baseUrl(baseUrl)
-                        .registry("ConsulRegistry")
+                        .registry("consul")
                     .and()
                     .build();
             clientApp.start();
